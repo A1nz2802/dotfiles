@@ -76,23 +76,23 @@ sudo ln -sf /home/a1nz/.zshrc /root/.zshrc
 
 Install the Astronaut theme following the automated configuration:
 
-```bash
-# Visit: https://github.com/Keyitdev/sddm-astronaut-theme
-# Follow the automatic configuration
-```
+<https://github.com/Keyitdev/sddm-astronaut-theme>
+
+Follow the automatic configuration
 
 ### GRUB Theme
 
 1. Install Elegant GRUB theme:
 
-```bash
-# Visit: https://github.com/vinceliuice/Elegant-grub2-themes
-```
+<https://github.com/vinceliuice/Elegant-grub2-themes>
 
 2. Configuration details:
-   - Theme path: `/boot/grub/themes/Elegant-forest-window-right-dark`
-   - Configuration file: `/etc/default/grub`
-   - Apply changes: `sudo grub-mkconfig -o /boot/grub/grub.cfg`
+  - Theme path: `/boot/grub/themes/Elegant-forest-window-right-dark`
+  - Configuration file: `/etc/default/grub`
+  - Apply changes: 
+    ```bash
+    sudo grub-mkconfig -o /boot/grub/grub.cfg
+    ```
 
 Convert GRUB background for ultrawide displays:
 ```bash
