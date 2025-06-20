@@ -1,0 +1,10 @@
+#!/bin/sh
+
+ip_addr_with_mask=$(ip -4 a show tun0 2>/dev/null | grep "inet " | awk '{print $2}')
+IP_ADDR="${ip_addr_with_mask%/*}"
+
+if [ -n "$IP_ADDR" ]; then
+    echo "$IP_ADDR"
+else
+    echo "Disconnected"
+fi 

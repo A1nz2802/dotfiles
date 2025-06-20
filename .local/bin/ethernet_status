@@ -1,0 +1,4 @@
+#!/bin/sh
+ 
+ip_addr_with_mask=$(ip a show enp12s0 | grep "inet " | awk '{print $2}')
+echo "${ip_addr_with_mask%/*}"

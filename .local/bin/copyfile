@@ -1,0 +1,4 @@
+function copyfile {
+  emulate -L zsh
+  xclip -selection clipboard $1
+}
