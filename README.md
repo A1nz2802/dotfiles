@@ -78,8 +78,6 @@ Install the Astronaut theme following the automated configuration:
 
 <https://github.com/Keyitdev/sddm-astronaut-theme>
 
-Follow the automatic configuration
-
 ### GRUB Theme
 
 1. Install Elegant GRUB theme:
