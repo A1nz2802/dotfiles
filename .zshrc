@@ -110,4 +110,11 @@ alias l='lsd --group-dirs=first'
 alias lla='lsd -lha --group-dirs=first'
 alias ls='lsd --group-dirs=first'
 
+# kitty image
+alias icat='kitty +kitten icat'
+
+# Keybindings
+bindkey '^[[1;5D' backward-word
+bindkey '^[[1;5C' forward-word
+
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
