@@ -1,4 +1,78 @@
 import Xmobar
+import System.Process (readProcess)
+import qualified Data.Map as M
+
+type ColorMap = M.Map String String
+
+-- main config
+makeConfig :: String -> Config
+makeConfig iface = defaultConfig
+  { font = "UbuntuMono NF Bold 13"
+  , bgColor = getColor "bg"
+  , fgColor = getColor "fg"
+  , position = TopSize L 100 30
+  , lowerOnStart = True
+  , hideOnStart = False
+  , allDesktops = True
+  , persistent = True
+  , commands = [
+      Run $ Com ".local/bin/kernel" [] "kernel" 36000,
+      Run $ Com ".local/bin/keyboard_layout" [] "keyboard" 36000,
+      Run $ Com ".local/bin/pacupdate" [] "updates" 30000,
+      Run $ Com ".local/bin/target" [] "target" 60,
+      Run $ Com ".local/bin/vpn_status" [] "vpn" 60,
+      Run $ Com ".local/bin/ethernet_status" [] "ip" 36000,
+      Run $ Network iface ["-t", "<fn=2>\xf01a</fn>  <rx>kb <fn=2>\xf01b</fn>  <tx>kb"] 15,
+      Run $ Cpu ["-t", "cpu: (<total>%)","-H","50","--high","red"] 50,
+      Run $ Memory ["-t", "mem: <used>M (<usedratio>%)"] 20,
+      Run $ DiskU [("/", "nvme: <free> free")] [] 60,
+      Run $ Date "%b %d %Y - (%H:%M)" "date" 50,
+      Run $ Com ".config/xmobar/trayer-padding-icon.sh" [] "trayerpad" 20,
+      Run UnsafeStdinReader
+    ]
+  , sepChar = "%"
+  , alignSep = "}{"
+  , template = templateStr iface
+  }
+
+colorScheme :: ColorMap
+colorScheme = M.fromList [
+    ("bg", "#292a36"),
+    ("fg", "#f8f8f2"),
+    ("xmonad", "#BF616A"),
+    ("target", "#f8f8f2"),
+    ("vpn", "#9aedfe"),
+    ("ip", "#ff92d0"),
+    ("sep", "#f8f8f2"),
+    ("kernel", "#bd93f9"),
+    ("cpu", "#f1fa8c"),
+    ("memory", "#ff5555"),
+    ("disk", "#5af78e"),
+    ("keyboard", "#ff79c6"),
+    ("updates", "#8be9fd"),
+    ("network", "#ff6e67"),
+    ("date", "#caa9fa")
+  ]
+
+templateStr :: String -> String
+templateStr iface = "<fc=" ++ getColor "xmonad" ++ "> \xf35e </fc> %UnsafeStdinReader% }{ "
+  ++ box (getColor "target") "\xf0bd0  %target%"
+  ++ box (getColor "vpn") "\xf099d  %vpn%"
+  ++ box (getColor "ip") "%ip%"
+  ++ simpleBox (getColor "sep") "\xe777  "
+  ++ box (getColor "kernel") "\xf08c7  %kernel%"
+  ++ box (getColor "cpu") "\xf4bc  %cpu%"
+  ++ box (getColor "memory") "\xf538 %memory%"
+  ++ box (getColor "disk") "\xf0c7  %disku%"
+  ++ box (getColor "keyboard") "\xf030c  lang: %keyboard%"
+  ++ box (getColor "updates") "\xf019  %updates%"
+  ++ box (getColor "network") ("%" ++ iface ++ "%")
+  ++ endbox (getColor "date") "\xf00f0  %date%"
+  ++ "%trayerpad%"
+
+-- helpers
+getColor :: String -> String
+getColor key = M.findWithDefault "#ffffff" key colorScheme
 
 box :: String -> String -> String
 box color text = "<box type=Bottom width=2 mb=2 color=" ++ color ++ ">" ++ "<fc=" ++ color ++ ">" ++ text ++ "</fc></box>   "
@@ -6,68 +80,15 @@ box color text = "<box type=Bottom width=2 mb=2 color=" ++ color ++ ">" ++ "<fc=
 simpleBox :: String -> String -> String
 simpleBox color text = "<fc=" ++ color ++ ">" ++ text ++ "</fc>"
 
-config :: Config
-config = defaultConfig
-    { -- Appearance
-      font         = "UbuntuMono NF Bold 13"
-    , bgColor      = "#292a36"
-    , fgColor      = "#f8f8f2"
+endbox :: String -> String -> String
+endbox color text = "<box type=Bottom width=2 mb=2 color=" ++ color ++ ">" ++ "<fc=" ++ color ++ ">" ++ text ++ "</fc></box>"
 
-    -- Layout
-    , position     = TopSize L 100 30
-    , lowerOnStart = True
-    , hideOnStart  = False
-    , allDesktops  = True
-    , persistent   = True
-
-    , commands = [
-        -- System info
-        Run $ Com ".local/bin/kernel" [] "kernel" 36000,
-        Run $ Com ".local/bin/keyboard_layout" [] "keyboard" 36000,
-        Run $ Com ".local/bin/pacupdate" [] "updates" 3000,
-
-        -- Network info
-        Run $ Com ".local/bin/target" [] "target" 36000,
-        Run $ Com ".local/bin/vpn_status" [] "vpn" 36000,
-        Run $ Com ".local/bin/ethernet_status" [] "ip" 36000,
-        Run $ Network "enp12s0" ["-t", "<fn=2>\xf01a</fn>  <rx>kb  <fn=2>\xf01b</fn>  <tx>kb"] 150,    
-
-        -- System Resources
-        Run $ Cpu ["-t", "cpu: (<total>%)","-H","50","--high","red"] 20,
-        Run $ Memory ["-t", "mem: <used>M (<usedratio>%)"] 20,
-        Run $ DiskU [("/", "nvme: <free> free")] [] 60,
-        
-        -- Time and date
-        Run $ Date "%b %d %Y - (%H:%M) " "date" 50,
-
-        -- System Tray Padding
-        Run $ Com ".config/xmobar/trayer-padding-icon.sh" [] "trayerpad" 20,
-
-        -- Worskpaces and window title
-        Run UnsafeStdinReader
-        ]
-
-    -- Template
-    , sepChar = "%"
-    , alignSep = "}{"
-    , template = templateStr
-    }
-
-templateStr :: String
-templateStr = "<fc=#BF616A> \xf35e </fc> %UnsafeStdinReader% }{ "
-        ++ box "#f8f8f2" "\xf0bd0  %target%"      
-        ++ box "#9aedfe" "\xf099d  %vpn%"        
-        ++ box "#ff92d0" "\xf0200  %ip%"         
-        ++ simpleBox "#f8f8f2" "\xe777  "
-        ++ box "#bd93f9" "\xf08c7  %kernel%"      
-        ++ box "#f1fa8c" "\xf4bc  %cpu%"         
-        ++ box "#ff5555" "\xf538  %memory%"      
-        ++ box "#5af78e" "\xf0c7  %disku%"       
-        ++ box "#ff79c6" "\xf030c  lang: %keyboard%" 
-        ++ box "#8be9fd" "\xf019  %updates%"     
-        ++ box "#ff6e67" "%enp12s0%"
-        ++ box "#caa9fa" "\xf00f0  %date%"        
-        ++ "%trayerpad%"
+getInterface :: IO String
+getInterface = do
+  output <- readProcess "/home/a1nz/.local/bin/iface" [] ""
+  return (init output)
 
 main :: IO ()
-main = xmobar config
+main = do
+  iface <- getInterface
+  xmobar (makeConfig iface)

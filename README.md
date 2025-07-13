@@ -156,16 +156,22 @@ To apply the cursor theme system-wide:
     Xcursor.size: 64
     ```
 
-- Create or edit `~/.xinitrc` and add:
+- Create or edit `~/.xprofile` and add:
 
     ```sh
-    #!/bin/sh
-    xrdb -merge ~/.Xresources &
+        # Screens
+        hdmi=$(xrandr | grep ' connected' | grep 'HDMI' | awk '{print $1}')
 
-    export XCURSOR_THEME="Your-Theme"
-    export XCURSOR_SIZE=64
-
-    exec xmonad
+        if [ "$hdmi" = "HDMI-1" ]; then
+            xrandr \
+                --output DP-0 --primary --mode 3440x1440 \
+                --output HDMI-1 --mode 3840x2160 &
+        else
+            xrandr \
+                --output DP-0 --primary --mode 3440x1440 \
+                --output HDMI-1 --off \
+                --output eDP-1 --off &
+        fi
     ```
 
 ### Font Installation
