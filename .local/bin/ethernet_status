@@ -1,4 +1,27 @@
 #!/bin/sh
  
-ip_addr_with_mask=$(ip a show enp12s0 | grep "inet " | awk '{print $2}')
-echo "${ip_addr_with_mask%/*}"
+ethernet_interface="enp12s0"
+wireless_interface="wlan0"
+
+get_ip() {
+  ip a show "$1" | grep -w "inet" | awk '{print $2}' | cut -d '/' -f 1
+}
+
+ip_eth=$(get_ip "$ethernet_interface")
+
+if [ -n "$ip_eth" ]; then
+  ip_addr="󰈀  $ip_eth"
+else
+  ip_wlan=$(get_ip "$wireless_interface")
+  if [ -n "$ip_wlan" ]; then
+    ip_addr="  $ip_wlan"
+  else
+    ip_addr="󰈂  Disconnected"
+  fi
+fi
+
+echo "$ip_addr" 
+
+
+
+
