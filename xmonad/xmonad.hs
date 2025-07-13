@@ -61,7 +61,6 @@ import qualified XMonad.Layout.ToggleLayouts as T (toggleLayouts, ToggleLayout(T
 import qualified XMonad.Layout.MultiToggle as MT (Toggle(..))
 
    -- Utilities
-
 import XMonad.Util.EZConfig (additionalKeysP, mkNamedKeymap)
 import XMonad.Util.NamedActions
 import XMonad.Util.NamedScratchpad
@@ -79,7 +78,7 @@ import XMonad.Util.SpawnOnce
       -- SolarizedDark
       -- SolarizedLight
       -- TomorrowNight
-import Colors.GruvboxDark
+import Colors.TomorrowNight
 
 myFont :: String
 myFont = "xft:SauceCodePro Nerd Font Mono:regular:size=9:antialias=true:hinting=true"
@@ -118,20 +117,26 @@ windowCount = gets $ Just . show . length . W.integrate' . W.stack . W.workspace
 myStartupHook :: X ()
 myStartupHook = do
   spawnOnce (mySoundPlayer ++ startupSound)
-  spawn "killall conky"   -- kill current conky on each restart
-  spawn "killall trayer"  -- kill current trayer on each restart
 
-  spawnOnce "lxsession"
+  -- Monitors config
+  --safeSpawn "xrandr" ["--output", "DP-0", "--primary"]
+
+  --safeSpawn "xrandr" ["--output", "DP-0", "--mode", "3440x1440", "--pos", "0x0"]
+  --safeSpawn "xrandr" ["--output", "HDMI-0", "--mode", "3840x2160", "--left-of", "DP-0"]
+
+  --safeSpawn "xrandr" ["--output", "HDMI-0", "--off"]
+
+  spawn "killall conky" 
+  spawn "killall trayer"
+
   spawnOnce "picom -b"
-  spawnOnce "sleep 2 && copyq"
-  spawnOnce "sleep 2 && volumeicon"
-  spawnOnce "sleep 2 && blueman-applet"
+  spawnOnce "sleep 3 && copyq &"
+  spawnOnce "sleep 3 && volumeicon &"
+  spawnOnce "sleep 2 && blueman-applet &"
   -- spawnOnce "nm-applet"
   
-  -- We killed any running conky and trayer processes earlier in the autostart,
-  -- so now we sleep for 2 seconds and then restart conky and trayer.
   spawn ("sleep 2 && conky -c $HOME/.config/conky/xmonad/" ++ colorScheme ++ "-01.conkyrc")
-  spawn ("sleep 2 && trayer --edge top --align right --widthtype request --padding 8 --iconspacing 10 --SetDockType true --SetPartialStrut true --expand true --monitor 0 --transparent true --alpha 0 " ++ colorTrayer ++ " --height 30")
+  spawn ("sleep 2 && trayer --edge top --align right --widthtype request --padding 8 --iconspacing 8 --SetDockType true --SetPartialStrut true --expand true --monitor 0 --transparent true --alpha 0 " ++ colorTrayer ++ " --height 30")
 
   spawnOnce "nitrogen --random --set-zoom-fill &"
   setWMName "LG3D"
@@ -336,10 +341,10 @@ myManageHook = composeAll
   , isFullscreen -->  doFullFloat
   ] <+> namedScratchpadManageHook myScratchPads
 
-soundDir = "/opt/dtos-sounds/" -- The directory that has the sound files
+soundDir = "/opt/system-sounds/" -- The directory that has the sound files
 
-startupSound  = soundDir ++ "startup-01.mp3"
-shutdownSound = soundDir ++ "shutdown-01.mp3"
+startupSound  = soundDir ++ "startup.mp3"
+shutdownSound = soundDir ++ "shutdown.mp3"
 
 subtitle' ::  String -> ((KeyMask, KeySym), NamedAction)
 subtitle' x = ((0,0), NamedAction $ map toUpper
@@ -433,13 +438,9 @@ myKeys c =
 
 main :: IO ()
 main = do
-
-  -- Launching three instances of xmobar on their monitors.
   xmproc0 <- spawnPipe ("xmobar -x 0 $HOME/.config/xmobar/" ++ colorScheme ++ "-xmobarrc.hs")
   xmproc1 <- spawnPipe ("xmobar -x 1 $HOME/.config/xmobar/" ++ colorScheme ++ "-xmobarrc.hs")
-  xmproc2 <- spawnPipe ("xmobar -x 2 $HOME/.config/xmobar/" ++ colorScheme ++ "-xmobarrc.hs")
 
-  -- the xmonad, ya know...what the WM is named after!
   xmonad $ addDescrKeys' ((mod4Mask, xK_F1), showKeybindings) myKeys $ ewmh $ docks $ def
     { manageHook         = myManageHook <+> manageDocks
     , handleEventHook    = swallowEventHook (className =? "Alacritty"  <||> className =? "st-256color" <||> className =? "XTerm") (return True)
@@ -454,7 +455,6 @@ main = do
     , logHook = dynamicLogWithPP $  filterOutWsPP [scratchpadWorkspaceTag] $ xmobarPP
         { ppOutput = \x -> hPutStrLn xmproc0 x   -- xmobar on monitor 1
                         >> hPutStrLn xmproc1 x   -- xmobar on monitor 2
-                        >> hPutStrLn xmproc2 x   -- xmobar on monitor 3
         , ppCurrent = xmobarColor color06 "" . wrap
                       ("<box type=Bottom width=2 mb=2 color=" ++ color06 ++ ">") "</box>"
           -- Visible but not current workspace
