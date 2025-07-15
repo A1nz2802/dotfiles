@@ -2,55 +2,56 @@
 
 ### XMonad Keybindings
 
-> [!NOTE]
-> `M` refers to the `Mod` key (usually `Alt` or `Super`/`Windows` key), and `S` refers to `Shift`.
+| Keybinding         | Description                                         |
+|--------------------|-----------------------------------------------------|
+| ` + 󰘶 + q`        | Quit XMonad                                         |
+| ` + w`            | Kill focused window                                 |
 
-| Keybinding    | Description                                          |
-| :------------ | :--------------------------------------------------- |++++++++++
-| `M-S-q`       | Quit XMonad                                          |
-| `M-w`         | Kill focused window                                  |
-|               | **Switch to Workspace**                              |
-| `M-[1-9]`     | Switch to workspace [1-9]                            |
-| `M-S-[1-9]`   | Send to workspace [1-9]                              |
-|               | **Window Navigation**                                |
-| `M-Down`      | Move focus down                                      |
-| `M-Up`        | Move focus up                                        |
-| `M-Right`     | Swap focused window with next                        |
-| `M-Left`      | Swap focused window with prev                        |
-|               | **Rofi**                                             |
-| `M-m`         | Menu (Rofi drun)                                     |
-| `M-S-m`       | Window Navigator                                     |
-| `M-S-.`       | Emojis                                               |
-| `M-g`         | Google Search                                        |
-|               | **Scrot (Screenshots)**                              |
-| `M-S-s`       | Capture screenshot + clipboard                       |
-| `M-s`         | Full screenshot + clipboard                          |
-|               | **Favorite Programs**                                |
-| `M-Return`    | Launch terminal                                      |
-| `M-b`         | Launch web browser                                   |
-| `M-e`         | Launch file manager                                  |
-|               | **Monitors**                                         |
-| `M-.`         | Switch focus to next monitor                         |
-| `M-,`         | Switch focus to previous monitor                     |
-|               | **Layouts**                                          |
-| `M-Tab`       | Switch to next layout                                |
-| `M-Space`     | Toggle noborders/full layout and toggle struts       |
-|               | **Window Resizing**                                  |
-| `M-h`         | Shrink window (horizontally)                         |
-| `M-l`         | Expand window (horizontally)                         |
-| `M-M1-j`      | Shrink window vertically (`M1` => `Alt`)             |
-| `M-M1-k`      | Expand window vertically (`M1` => `Alt`)             |
-|               | **Floating Windows**                                 |
-| `M-f`         | Toggle float layout                                  |
-| `M-t`         | Sink a floating window                               |
-| `M-S-t`       | Sink all floated windows                             |
-|               | **Master/Stack Pane Adjustment**                     |
-| `M-S-Up`      | Increase clients in master pane                      |
-| `M-S-Down`    | Decrease clients in master pane                      |
+|                    | **Switch to Workspace**                             |
+| ` + [1-9]`        | Switch to workspace [1–9]                           |
+| ` + 󰘶 + [1-9]`    | Send window to workspace [1–9]                      |
 
-### XMonad Keybindings
+|                    | **Window Navigation**                               |
+| ` + ↓`            | Move focus down                                     |
+| ` + ↑`            | Move focus up                                       |
+| ` + →`            | Swap focused window with next                       |
+| ` + ←`            | Swap focused window with previous                   |
 
+|                    | **Rofi**                                            |
+| ` + m`            | App launcher (`rofi -show drun`)                    |
+| ` + 󰘶 + m`        | Window switcher (`rofi -show`)                      |
+| ` + 󰘶 + .`        | Emoji picker (`rofi -modi emoji`)                   |
+| ` + g`            | Google search launcher via rofi                     |
 
+|                    | **Scrot (Screenshots)**                             |
+| ` + 󰘶 + s`        | Select area screenshot (file + clipboard)           |
+| ` + s`            | Full screenshot (file + clipboard)                  |
+
+|                    | **Favorite Programs**                               |
+| ` + Return`       | Launch terminal                                     |
+| ` + b`            | Launch web browser                                  |
+| ` + e`            | Launch file manager                                 |
+
+|                    | **Monitors**                                        |
+| ` + .`            | Focus next monitor                                  |
+| ` + ,`            | Focus previous monitor                              |
+
+|                    | **Layouts**                                         |
+| ` + Tab`          | Switch to next layout                               |
+| ` + Space`        | Toggle full/noborder layout + toggle struts         |
+
+|                    | **Window Resizing**                                 |
+| ` + 󰘶 + ←`        | Shrink window horizontally                          |
+| ` + 󰘶 + →`        | Expand window horizontally                          |
+| ` + 󰘶 + ↓`        | Shrink window vertically                            |
+| ` + 󰘶 + ↑`        | Expand window vertically                            |
+
+|                    | **Floating Windows**                                |
+| ` + t`            | Sink (tile) focused floating window                 |
+| ` + 󰘶 + t`        | Sink all floating windows                           |
+
+|                    | **Scratchpads**                                     |
+| ` + 󰘶 + Return`   | Toggle scratchpad terminal                          |
 
 ### Dependencies
 
