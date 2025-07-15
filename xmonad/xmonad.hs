@@ -1,7 +1,7 @@
   -- Base
 import XMonad
 import System.Directory
-import System.IO (hClose, hPutStr, hPutStrLn)
+import System.IO (hPutStrLn)
 import System.Exit (exitSuccess)
 import qualified XMonad.StackSet as W
 
@@ -78,7 +78,7 @@ import XMonad.Util.SpawnOnce
       -- SolarizedDark
       -- SolarizedLight
       -- TomorrowNight
-import Colors.TomorrowNight
+import Colors.GruvboxDark
 
 myFont :: String
 myFont = "xft:SauceCodePro Nerd Font Mono:regular:size=9:antialias=true:hinting=true"
@@ -171,7 +171,6 @@ myColorizer = colorRangeFromClassName
                 (0xc0,0xa7,0x9a) -- inactive fg
                 (0x28,0x2c,0x34) -- active fg
 
--- gridSelect menu layout
 mygridConfig :: p -> GSConfig Window
 mygridConfig colorizer = (buildDefaultGSConfig myColorizer)
     { gs_cellheight   = 40
@@ -202,12 +201,9 @@ runSelectedAction' conf actions = do
         Nothing -> return ()
 
 myScratchPads :: [NamedScratchpad]
-myScratchPads = [ NS "terminal" spawnTerm findTerm manageTerm
-                , NS "mocp" spawnMocp findMocp manageMocp
-                , NS "calculator" spawnCalc findCalc manageCalc
-                ]
+myScratchPads = [ NS "terminal" spawnTerm findTerm manageTerm ]
   where
-    spawnTerm  = myTerminal ++ " -t scratchpad"
+    spawnTerm  = myTerminal ++ " --title scratchpad"
     findTerm   = title =? "scratchpad"
     manageTerm = customFloating $ W.RationalRect l t w h
                where
@@ -215,35 +211,13 @@ myScratchPads = [ NS "terminal" spawnTerm findTerm manageTerm
                  w = 0.9
                  t = 0.95 -h
                  l = 0.95 -w
-    spawnMocp  = myTerminal ++ " -t mocp -e mocp"
-    findMocp   = title =? "mocp"
-    manageMocp = customFloating $ W.RationalRect l t w h
-               where
-                 h = 0.9
-                 w = 0.9
-                 t = 0.95 -h
-                 l = 0.95 -w
-    spawnCalc  = "qalculate-gtk"
-    findCalc   = className =? "Qalculate-gtk"
-    manageCalc = customFloating $ W.RationalRect l t w h
-               where
-                 h = 0.5
-                 w = 0.4
-                 t = 0.75 -h
-                 l = 0.70 -w
 
---Makes setting the spacingRaw simpler to write. The spacingRaw module adds a configurable amount of space around windows.
 mySpacing :: Integer -> l a -> XMonad.Layout.LayoutModifier.ModifiedLayout Spacing l a
 mySpacing i = spacingRaw False (Border i i i i) True (Border i i i i) True
 
--- Below is a variation of the above except no borders are applied
--- if fewer than two windows. So a single window has no gaps.
 mySpacing' :: Integer -> l a -> XMonad.Layout.LayoutModifier.ModifiedLayout Spacing l a
 mySpacing' i = spacingRaw True (Border i i i i) True (Border i i i i) True
 
--- Defining a bunch of layouts, many that I don't use.
--- limitWindows n sets maximum number of windows displayed for layout.
--- mySpacing n sets the gap size around the windows.
 tall     = renamed [Replace "tall"]
            $ limitWindows 5
            $ smartBorders
@@ -252,15 +226,6 @@ tall     = renamed [Replace "tall"]
            $ subLayout [] (smartBorders Simplest)
            $ mySpacing 8
            $ ResizableTall 1 (3/100) (1/2) []
-monocle  = renamed [Replace "monocle"]
-           $ smartBorders
-           $ windowNavigation
-           $ addTabs shrinkText myTabTheme
-           $ subLayout [] (smartBorders Simplest)
-           $ Full
-floats   = renamed [Replace "floats"]
-           $ smartBorders
-           $ simplestFloat
 grid     = renamed [Replace "grid"]
            $ limitWindows 9
            $ smartBorders
@@ -270,18 +235,19 @@ grid     = renamed [Replace "grid"]
            $ mySpacing 8
            $ mkToggle (single MIRROR)
            $ Grid (16/10)
-spirals  = renamed [Replace "spirals"]
-           $ limitWindows 9
+threeCol = renamed [Replace "threeCol"]
+           $ limitWindows 7
            $ smartBorders
            $ windowNavigation
            $ addTabs shrinkText myTabTheme
            $ subLayout [] (smartBorders Simplest)
-           $ mySpacing' 8
-           $ spiral (6/7)
-tabs     = renamed [Replace "tabs"]
-           -- I cannot add spacing to this layout because it will
-           -- add spacing between window and tabs which looks bad.
-           $ tabbed shrinkText myTabTheme
+           $ ThreeCol 1 (3/100) (1/2)
+monocle  = renamed [Replace "monocle"]
+           $ smartBorders
+           $ windowNavigation
+           $ addTabs shrinkText myTabTheme
+           $ subLayout [] (smartBorders Simplest)
+           $ Full
 
 -- setting colors for tabs layout and tabs sublayout.
 myTabTheme = def { fontName            = myFont
@@ -297,18 +263,15 @@ myTabTheme = def { fontName            = myFont
 myLayoutHook = avoidStruts
                $ mouseResize
                $ windowArrange
-               $ T.toggleLayouts floats
                $ mkToggle (NBFULL ?? NOBORDERS ?? EOT) myDefaultLayout
   where
     myDefaultLayout = withBorder myBorderWidth tall
-                                           ||| noBorders monocle
-                                           ||| floats
-                                           ||| noBorders tabs
+                                           ||| threeCol
                                            ||| grid
-                                           ||| spirals
+                                           ||| noBorders monocle
 
 -- myWorkspaces = [" 1 ", " 2 ", " 3 ", " 4 ", " 5 ", " 6 ", " 7 ", " 8 ", " 9 "]
-myWorkspaces = [" dev ", " www ", " term ", " ref ", " git ", " dock ", " fs ", " media ", " misc "]
+myWorkspaces = [" code ", " www ", " term ", " ref ", " sys ", " sec ", " fs ", " media ", " misc "]
 myWorkspaceIndices = M.fromList $ zipWith (,) myWorkspaces [1..] -- (,) == \x y -> (x,y)
 
 clickable ws = "<action=xdotool key super+"++show i++">"++ws++"</action>"
@@ -316,28 +279,17 @@ clickable ws = "<action=xdotool key super+"++show i++">"++ws++"</action>"
 
 myManageHook :: XMonad.Query (Data.Monoid.Endo WindowSet)
 myManageHook = composeAll
-  -- 'doFloat' forces a window to float.  Useful for dialog boxes and such.
-  -- using 'doShift ( myWorkspaces !! 7)' sends program to workspace 8!
-  -- I'm doing it this way because otherwise I would have to write out the full
-  -- name of my workspaces and the names would be very long if using clickable workspaces.
   [ className =? "confirm"         --> doFloat
   , className =? "file_progress"   --> doFloat
   , className =? "dialog"          --> doFloat
   , className =? "download"        --> doFloat
   , className =? "error"           --> doFloat
-  , className =? "Gimp"            --> doFloat
   , className =? "notification"    --> doFloat
   , className =? "pinentry-gtk-2"  --> doFloat
   , className =? "splash"          --> doFloat
   , className =? "toolbar"         --> doFloat
   , className =? "Yad"             --> doCenterFloat
-  , title =? "Oracle VM VirtualBox Manager"  --> doFloat
-  , title =? "Mozilla Firefox"     --> doShift ( myWorkspaces !! 1 )
-  , className =? "Brave-browser"   --> doShift ( myWorkspaces !! 1 )
-  , className =? "mpv"             --> doShift ( myWorkspaces !! 7 )
-  , className =? "Gimp"            --> doShift ( myWorkspaces !! 8 )
-  , className =? "VirtualBox Manager" --> doShift  ( myWorkspaces !! 4 )
-  , (className =? "firefox" <&&> resource =? "Dialog") --> doFloat  -- Float Firefox Dialog
+  , (className =? "firefox" <&&> resource =? "Dialog") --> doFloat
   , isFullscreen -->  doFullFloat
   ] <+> namedScratchpadManageHook myScratchPads
 
@@ -351,14 +303,6 @@ subtitle' x = ((0,0), NamedAction $ map toUpper
                       $ sep ++ "\n-- " ++ x ++ " --\n" ++ sep)
   where
     sep = replicate (6 + length x) '-'
-
-showKeybindings :: [((KeyMask, KeySym), NamedAction)] -> NamedAction
-showKeybindings x = addName "Show Keybindings" $ io $ do
-  h <- spawnPipe $ "yad --text-info --fontname=\"SauceCodePro Nerd Font Mono 12\" --fore=#46d9ff back=#282c36 --center --geometry=1200x800 --title \"XMonad keybindings\""
-  --hPutStr h (unlines $ showKm x) -- showKM adds ">>" before subtitles
-  hPutStr h (unlines $ showKmSimple x) -- showKmSimple doesn't add ">>" to subtitles
-  hClose h
-  return ()
 
 myKeys :: XConfig l0 -> [((KeyMask, KeySym), NamedAction)]
 myKeys c =
@@ -436,12 +380,19 @@ myKeys c =
   [ ("M-S-<Up>", addName "Increase clients in master pane"   $ sendMessage (IncMasterN 1))
   , ("M-S-<Down>", addName "Decrease clients in master pane" $ sendMessage (IncMasterN (-1)))]
 
+  ^++^ subKeys "Scratchpads"
+  [ ("M-S-<Return>", addName "Toggle scratchpad terminal"   $ namedScratchpadAction myScratchPads "terminal")]
+
+  -- The following lines are needed for named scratchpads.
+    where nonNSP          = WSIs (return (\ws -> W.tag ws /= "NSP"))
+          nonEmptyNonNSP  = WSIs (return (\ws -> isJust (W.stack ws) && W.tag ws /= "NSP"))
+
 main :: IO ()
 main = do
   xmproc0 <- spawnPipe ("xmobar -x 0 $HOME/.config/xmobar/" ++ colorScheme ++ "-xmobarrc.hs")
   xmproc1 <- spawnPipe ("xmobar -x 1 $HOME/.config/xmobar/" ++ colorScheme ++ "-xmobarrc.hs")
 
-  xmonad $ addDescrKeys' ((mod4Mask, xK_F1), showKeybindings) myKeys $ ewmh $ docks $ def
+  xmonad $ addDescrKeys' ((mod4Mask, xK_F1), \_ -> return () :: X ()) myKeys $ ewmh $ docks $ def
     { manageHook         = myManageHook <+> manageDocks
     , handleEventHook    = swallowEventHook (className =? "Alacritty"  <||> className =? "st-256color" <||> className =? "XTerm") (return True)
     , modMask            = myModMask

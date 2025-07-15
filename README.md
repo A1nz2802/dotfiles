@@ -6,7 +6,7 @@
 > `M` refers to the `Mod` key (usually `Alt` or `Super`/`Windows` key), and `S` refers to `Shift`.
 
 | Keybinding    | Description                                          |
-| :------------ | :--------------------------------------------------- |
+| :------------ | :--------------------------------------------------- |++++++++++
 | `M-S-q`       | Quit XMonad                                          |
 | `M-w`         | Kill focused window                                  |
 |               | **Switch to Workspace**                              |
