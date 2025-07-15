@@ -1,0 +1,9 @@
+#!/bin/bash
+
+betterlockscreen -l -- \
+  --time-str="%I:%M %p" \
+  --time-color=ffffff \
+  --ring-color=cc99ff \
+  --inside-color=00000088 \
+  --time-font="JetBrainsMono Nerd Font" \
+  --indicator

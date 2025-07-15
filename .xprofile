@@ -1,3 +1,8 @@
+# LockScreen
+xset s 300 300
+
+xss-lock -- /home/a1nz/.local/bin/lock &
+
 # Screens
 hdmi=$(xrandr | grep ' connected' | grep 'HDMI' | awk '{print $1}')
 

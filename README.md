@@ -268,6 +268,36 @@ xrandr --addmode Virtual-1 "3440x1440R"
 xrandr --output Virtual-1 --mode "3440x1440R"
 ```
 
+### Lock Screen
+
+```bash
+sudo pacman -S xss-lock
+yay -S betterlockscreen
+```
+Set wallpaper for lockscreen
+
+```bash
+betterlockscreen -u ~/wallpapers/some-image.jpg
+```
+
+Manual lock
+
+```bash
+betterlockscreen --lock
+betterlockscreen --lock blur
+```
+
+Test lock inmediately
+```bash
+xset s activate
+```
+
+To automatically lock the screen after a given time (e.g. 5 minutes), add the following to your .xprofile
+```bash
+xset s 300 300
+xss-lock -- ~/.local/bin/lock &
+```
+
 ### Kitty keybindings
 
 | Keybinding                    | Description                     |
