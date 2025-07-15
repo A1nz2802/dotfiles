@@ -267,3 +267,34 @@ xrandr --newmode "3440x1440R" 319.75 3440 3488 3520 3600 1440 1443 1453 1481 +hs
 xrandr --addmode Virtual-1 "3440x1440R"
 xrandr --output Virtual-1 --mode "3440x1440R"
 ```
+
+### Kitty keybindings
+
+| Keybinding                    | Description                     |
+|-------------------------------|---------------------------------|
+|                               | **Split Navigation**            |
+| `Alt + ← → ↑ ↓`               | Move between splits             |
+
+|                               | **Split Management**            |
+| `Ctrl + Shift + Return`       | Create split                    |
+| `Ctrl + Shift + W`            | Close current split             |
+| `Ctrl + Shift + Z`            | Fullscreen split                |
+| `Ctrl + Shift + R`            | Resize split                    |
+
+|                               | **Tabs (Workspaces)**           |
+| `Ctrl + Shift + T`            | New tab                         |
+| `Ctrl + Shift + Q`            | Close current tab               |
+| `Ctrl + Shift + ← → ↑ ↓`      | Move between tabs               |
+| `Ctrl + Shift + , .`          | Swap tabs position              |
+| `Ctrl + Shift + Alt + T`      | Rename tab                      |
+
+|                               | **Clipboard Buffers**           |
+| `F1`                          | Copy to buffer A                |
+| `F2`                          | Paste from buffer A             |
+| `F3`                          | Copy to buffer B                |
+| `F4`                          | Paste from buffer B             |
+
+|                               | **Misc / Utilities**            |
+| `Ctrl + Shift + H`            | Open scrollback pager           |
+| `Ctrl + Shift + L`            | Toggle kitty layout modes       |
+| ``kitty +kitten show_key``    | Show current keybindings        |
