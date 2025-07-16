@@ -1,58 +1,5 @@
 ![xmonad](.screenshots/main.png)
 
-### XMonad Keybindings
-
-| Keybinding         | Description                                         |
-|--------------------|-----------------------------------------------------|
-| ` + 󰘶 + q`        | Quit XMonad                                         |
-| ` + w`            | Kill focused window                                 |
-|                    |                                                     |
-|                    | **Switch to Workspace**                             |
-| ` + [1-9]`        | Switch to workspace [1–9]                           |
-| ` + 󰘶 + [1-9]`    | Send window to workspace [1–9]                      |
-|                    |                                                     |
-|                    | **Window Navigation**                               |
-| ` + ↓`            | Move focus down                                     |
-| ` + ↑`            | Move focus up                                       |
-| ` + →`            | Swap focused window with next                       |
-| ` + ←`            | Swap focused window with previous                   |
-|                    |                                                     |
-|                    | **Rofi**                                            |
-| ` + m`            | App launcher (`rofi -show drun`)                    |
-| ` + 󰘶 + m`        | Window switcher (`rofi -show`)                      |
-| ` + 󰘶 + .`        | Emoji picker (`rofi -modi emoji`)                   |
-| ` + g`            | Google search launcher via rofi                     |
-|                    |                                                     |
-|                    | **Scrot (Screenshots)**                             |
-| ` + 󰘶 + s`        | Select area screenshot (file + clipboard)           |
-| ` + s`            | Full screenshot (file + clipboard)                  |
-|                    |                                                     |
-|                    | **Favorite Programs**                               |
-| ` + Return`       | Launch terminal                                     |
-| ` + b`            | Launch web browser                                  |
-| ` + e`            | Launch file manager                                 |
-|                    |                                                     |
-|                    | **Monitors**                                        |
-| ` + .`            | Focus next monitor                                  |
-| ` + ,`            | Focus previous monitor                              |
-|                    |                                                     |
-|                    | **Layouts**                                         |
-| ` + Tab`          | Switch to next layout                               |
-| ` + Space`        | Toggle full/noborder layout + toggle struts         |
-|                    |                                                     |
-|                    | **Window Resizing**                                 |
-| ` + 󰘶 + ←`        | Shrink window horizontally                          |
-| ` + 󰘶 + →`        | Expand window horizontally                          |
-| ` + 󰘶 + ↓`        | Shrink window vertically                            |
-| ` + 󰘶 + ↑`        | Expand window vertically                            |
-|                    |                                                     |
-|                    | **Floating Windows**                                |
-| ` + t`            | Sink (tile) focused floating window                 |
-| ` + 󰘶 + t`        | Sink all floating windows                           |
-|                    |                                                     |
-|                    | **Scratchpads**                                     |
-| ` + 󰘶 + Return`   | Toggle scratchpad terminal                          |
-
 ### Dependencies
 
 ```bash
@@ -297,6 +244,59 @@ To automatically lock the screen after a given time (e.g. 5 minutes), add the fo
 xset s 300 300
 xss-lock -- ~/.local/bin/lock &
 ```
+
+### XMonad Keybindings
+
+| Keybinding         | Description                                         |
+|--------------------|-----------------------------------------------------|
+| ` + 󰘶 + q`        | Quit XMonad                                         |
+| ` + w`            | Kill focused window                                 |
+|                    |                                                     |
+|                    | **Switch to Workspace**                             |
+| ` + [1-9]`        | Switch to workspace [1–9]                           |
+| ` + 󰘶 + [1-9]`    | Send window to workspace [1–9]                      |
+|                    |                                                     |
+|                    | **Window Navigation**                               |
+| ` + ↓`            | Move focus down                                     |
+| ` + ↑`            | Move focus up                                       |
+| ` + →`            | Swap focused window with next                       |
+| ` + ←`            | Swap focused window with previous                   |
+|                    |                                                     |
+|                    | **Rofi**                                            |
+| ` + m`            | App launcher (`rofi -show drun`)                    |
+| ` + 󰘶 + m`        | Window switcher (`rofi -show`)                      |
+| ` + 󰘶 + .`        | Emoji picker (`rofi -modi emoji`)                   |
+| ` + g`            | Google search launcher via rofi                     |
+|                    |                                                     |
+|                    | **Scrot (Screenshots)**                             |
+| ` + 󰘶 + s`        | Select area screenshot (file + clipboard)           |
+| ` + s`            | Full screenshot (file + clipboard)                  |
+|                    |                                                     |
+|                    | **Favorite Programs**                               |
+| ` + Return`       | Launch terminal                                     |
+| ` + b`            | Launch web browser                                  |
+| ` + e`            | Launch file manager                                 |
+|                    |                                                     |
+|                    | **Monitors**                                        |
+| ` + .`            | Focus next monitor                                  |
+| ` + ,`            | Focus previous monitor                              |
+|                    |                                                     |
+|                    | **Layouts**                                         |
+| ` + Tab`          | Switch to next layout                               |
+| ` + Space`        | Toggle full/noborder layout + toggle struts         |
+|                    |                                                     |
+|                    | **Window Resizing**                                 |
+| ` + 󰘶 + ←`        | Shrink window horizontally                          |
+| ` + 󰘶 + →`        | Expand window horizontally                          |
+| ` + 󰘶 + ↓`        | Shrink window vertically                            |
+| ` + 󰘶 + ↑`        | Expand window vertically                            |
+|                    |                                                     |
+|                    | **Floating Windows**                                |
+| ` + t`            | Sink (tile) focused floating window                 |
+| ` + 󰘶 + t`        | Sink all floating windows                           |
+|                    |                                                     |
+|                    | **Scratchpads**                                     |
+| ` + 󰘶 + Return`   | Toggle scratchpad terminal                          |
 
 ### Kitty keybindings
 
