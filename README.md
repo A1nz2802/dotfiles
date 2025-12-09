@@ -26,13 +26,13 @@ sudo pacman -S --noconfirm \
 yay -S --noconfirm pwvucontrol arc-gtk-theme
 ```
 
+### Neovim Config
+
+If you can see my nvim config, go [here](https://github.com/A1nz2802/nvim).
+
 ### SDDM Theme
 
-Install the Astronaut theme following the automated configuration:
-
-<https://github.com/Keyitdev/sddm-astronaut-theme>
-
-Follow the automatic configuration.
+Install the Astronaut theme following the automated configuration [here](<https://github.com/Keyitdev/sddm-astronaut-theme>).
 
 ### Cursor Theming
 
