@@ -78,7 +78,7 @@ import XMonad.Util.SpawnOnce
       -- SolarizedDark
       -- SolarizedLight
       -- TomorrowNight
-import Colors.GruvboxDark
+import Colors.MonokaiPro
 
 myFont :: String
 myFont = "xft:SauceCodePro Nerd Font Mono:regular:size=9:antialias=true:hinting=true"
@@ -129,16 +129,16 @@ myStartupHook = do
   spawn "killall conky" 
   spawn "killall trayer"
 
-  spawnOnce "picom -b"
+  --spawnOnce "picom -b"
   spawnOnce "sleep 3 && copyq &"
-  spawnOnce "sleep 3 && volumeicon &"
+  spawnOnce "sleep 3 && pasystray &"
   spawnOnce "sleep 2 && blueman-applet &"
   -- spawnOnce "nm-applet"
   
   spawn ("sleep 2 && conky -c $HOME/.config/conky/xmonad/" ++ colorScheme ++ "-01.conkyrc")
   spawn ("sleep 2 && trayer --edge top --align right --widthtype request --padding 8 --iconspacing 8 --SetDockType true --SetPartialStrut true --expand true --monitor 0 --transparent true --alpha 0 " ++ colorTrayer ++ " --height 30")
 
-  spawnOnce "nitrogen --random --set-zoom-fill &"
+  --spawnOnce "nitrogen --random --set-zoom-fill &"
   setWMName "LG3D"
 
 myNavigation :: TwoD a (Maybe a)
@@ -364,21 +364,15 @@ myKeys c =
 
   -- Window resizing
   ^++^ subKeys "Window resizing"
-  [ ("M-h", addName "Shrink window"               $ sendMessage Shrink)
-  , ("M-l", addName "Expand window"               $ sendMessage Expand)
-  , ("M-M1-j", addName "Shrink window vertically" $ sendMessage MirrorShrink)
-  , ("M-M1-k", addName "Expand window vertically" $ sendMessage MirrorExpand)]
+  [ ("M-S-<Left>", addName "Shrink window"            $ sendMessage Shrink)
+  , ("M-S-<Right>", addName "Expand window"           $ sendMessage Expand)
+  , ("M-S-<Down>", addName "Shrink window vertically" $ sendMessage MirrorShrink)
+  , ("M-S-<Up>", addName "Expand window vertically"   $ sendMessage MirrorExpand)]
 
   -- Floating windows
   ^++^ subKeys "Floating windows"
-  [ ("M-f", addName "Toggle float layout"        $ sendMessage (T.Toggle "floats"))
-  , ("M-t", addName "Sink a floating window"     $ withFocused $ windows . W.sink)
+  [ ("M-t", addName "Sink a floating window"     $ withFocused $ windows . W.sink)
   , ("M-S-t", addName "Sink all floated windows" $ sinkAll)]
-
-  -- Increase/decrease windows in the master pane or the stack
-  ^++^ subKeys "Increase/decrease windows in master pane or the stack"
-  [ ("M-S-<Up>", addName "Increase clients in master pane"   $ sendMessage (IncMasterN 1))
-  , ("M-S-<Down>", addName "Decrease clients in master pane" $ sendMessage (IncMasterN (-1)))]
 
   ^++^ subKeys "Scratchpads"
   [ ("M-S-<Return>", addName "Toggle scratchpad terminal"   $ namedScratchpadAction myScratchPads "terminal")]

@@ -19,7 +19,7 @@ makeConfig iface = defaultConfig
       Run $ Com ".local/bin/kernel" [] "kernel" 36000,
       Run $ Com ".local/bin/keyboard_layout" [] "keyboard" 36000,
       Run $ Com ".local/bin/pacupdate" [] "updates" 30000,
-      Run $ Com ".local/bin/target" [] "target" 60,
+      Run $ Com "cat" [".local/bin/target"] "target" 60,
       Run $ Com ".local/bin/vpn_status" [] "vpn" 60,
       Run $ Com ".local/bin/ethernet_status" [] "ip" 36000,
       Run $ Network iface ["-t", "<fn=2>\xf01a</fn>  <rx>kb <fn=2>\xf01b</fn>  <tx>kb"] 15,

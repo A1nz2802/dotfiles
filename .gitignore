@@ -1,3 +1,5 @@
 __pycache__/
-nvim/plugin/
 sounds/
+
+nvim/
+some.md

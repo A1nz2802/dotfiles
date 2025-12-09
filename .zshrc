@@ -1,4 +1,4 @@
-# Created by newuser for 5.9
+# Created by a1nz for 5.9
 eval "$(starship init zsh)"
 
 # Zsh Plugings
@@ -118,3 +118,8 @@ bindkey '^[[1;5D' backward-word
 bindkey '^[[1;5C' forward-word
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# AI Api Keys for neovim avante plugin
+export AVANTE_ANTHROPIC_API_KEY=""
+export AVANTE_OPENAI_API_KEY=""
+export AVANTE_GEMINI_API_KEY=""

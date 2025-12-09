@@ -1,3 +1,6 @@
+# Envs
+export ADW_DEBUG_COLOR_SCHEME=prefer-dark # for gtk4 Libadwaita apps (dconf-editor, pwvucontrol, etc)
+
 # LockScreen
 xset s 300 300
 
@@ -8,11 +11,11 @@ hdmi=$(xrandr | grep ' connected' | grep 'HDMI' | awk '{print $1}')
 
 if [ "$hdmi" = "HDMI-1" ]; then
   xrandr \
-    --output DP-0 --primary --mode 3440x1440 \
+    --output DP-0 --primary --mode 3440x1440 --rate 165.00 \
     --output HDMI-1 --mode 3840x2160 &
 else
   xrandr \
-    --output DP-0 --primary --mode 3440x1440 \
+    --output DP-0 --primary --mode 3440x1440 --rate 165.00 \
     --output HDMI-1 --off \
     --output eDP-1 --off &
 fi

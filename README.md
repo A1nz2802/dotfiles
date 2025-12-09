@@ -1,4 +1,4 @@
-![xmonad](.screenshots/main.png)
+![xmonad](.screenshots/secondary.png)
 
 ### Dependencies
 
@@ -7,7 +7,7 @@ sudo pacman -S --noconfirm \
   # Window Managers & Core Utils
   qtile xmonad xmonad-contrib xmobar xdotool \
   # System & Utilities
-  pacman-contrib trayer picom scrot nitrogen python-psutil \
+  pacman-contrib trayer picom scrot nitrogen python-psutil dcont-editor dunst pasystray \
   # Theming & Appearance
   papirus-icon-theme gnome-themes-extra breeze-gtk breeze gnome-tweaks lxappearance \
   # Terminal & Shell
@@ -328,3 +328,78 @@ xss-lock -- ~/.local/bin/lock &
 | `Ctrl + Shift + H`            | Open scrollback pager           |
 | `Ctrl + Shift + L`            | Toggle kitty layout modes       |
 | ``kitty +kitten show_key``    | Show current keybindings        |
+
+### Neovim keybindings
+
+| Keybinding       | Description                                       |
+|------------------|---------------------------------------------------|
+|                  | **Normal Mode - Insertion**                       |
+| `a`              | Insert after the cursor                           |
+| `A`              | Insert at the end of the line                     |
+| `i`              | Insert before the cursor                          |
+| `I`              | Insert at the beginning of the line               |
+| `o`              | Open new line below and enter insert mode         |
+| `O`              | Open new line above and enter insert mode         |
+|                  | **Normal Mode - Navigation**                      |
+| `k`              | Move cursor up                                    |
+| `j`              | Move cursor down                                  |
+| `l`              | Move cursor right                                 |
+| `h`              | Move cursor left                                  |
+|                  |                                                   |
+| `w`              | Jump forward to the start of next word            |
+| `W`              | Jump forward to next WORD (ignores punctuation)   |
+| `e`              | Jump to end of current/next word                  |
+| `E`              | Jump to end of current/next WORD                  |
+|                  |                                                   |
+| `b`              | Jump to start of previous word                    |
+| `B`              | Jump to start of previous WORD                    |
+|                  |                                                   | 
+| `$`              | Go to end of line                                 |
+| `0`              | Go to beginning of line                           |
+|                  |                                                   |
+| `gg`             | Go to first line of file                          |
+| `G`              | Go to last line of file                           |
+|                  |                                                   |
+| `Ctrl + d`       | Scroll down half a screen                         |
+| `Ctrl + u`       | Scroll up half a screen                           |
+| `Ctrl + f`       | Scroll down one full sreen                        |
+| `Ctrl + b`       | Scroll up one full screen                         |
+|                  | **Normal Mode - Editing/Deleting**                |
+| `x`              | Delete character under cursor                     |
+| `X`              | Delete character before cursor                    |
+| `dw`             | Delete from cursor to end of word                 |
+| `db`             | Delete from cursor to start of word               |
+| `dd`             | Delete (cut) entire line                          |
+| `cw`             | Change word (delete and enter insert mode)        |
+| `cc`             | Change entire line                                |
+| `r<char>`        | Replace character under cursor with <char>        |
+| `s`              | Delete character and enter insert mode            |
+| `S`              | Delete line and enter insert mode                 |
+|                  | **Normal Mode - Yank/Paste**                      |
+| `y`              | Yank (copy) selection                             |
+| `yy`             | Yank entire line                                  |
+| `p`              | Paste after cursor                                |
+| `P`              | Paste before cursor                               |
+| `"+p`            | Paste from system clipboard                       |
+| `"+y`            | Yank to system clipboard                          |
+|                  | **Normal Mode - Undo/Redo**                       |
+| `u`              | Undo last change                                  |
+| `Ctrl + r`       | Redo last undone change                           |
+|                  | **Normal Mode - Indentation/Formatting**          |
+| `>>`             | Indent line to the right                          |
+| `<<`             | Indent line to the left                           |
+| `=`              | Auto-indent current line                          |
+| `=G`             | Auto-indent to end of file                        |
+|                  | **Visual Mode**                                   |
+| `v`              | Start visual character-wise selection             | 
+| `V`              | Start visual line-wise selection                  | 
+| `Ctrl + v`       | Start visual block mode                           |
+| `Shift + v`      | Start visual line mode                            |
+| `o`              | Move to opposite end of selection                 |
+| `d`              | Delete selection                                  |
+| `c`	           | Change selection (delete and enter insert)        |
+| `>`	           | Indent selection right                            |
+| `<`	           | Indent selection left                             |
+| `=`	           | Auto-indent selection                             |
+| `u`	           | Convert selection to lowercase                    |
+| `U`	           | Convert selection to uppercase                    |
