@@ -7,7 +7,7 @@ sudo pacman -S --noconfirm \
   # Window Managers & Core Utils
   qtile xmonad xmonad-contrib xmobar xdotool \
   # System & Utilities
-  pacman-contrib trayer picom scrot nitrogen python-psutil dcont-editor dunst pasystray \
+  pacman-contrib trayer picom scrot nitrogen python-psutil dconf-editor dunst pasystray \
   # Theming & Appearance
   papirus-icon-theme gnome-themes-extra breeze-gtk breeze gnome-tweaks lxappearance \
   # Terminal & Shell
