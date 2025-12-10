@@ -1,0 +1,11 @@
+#!/bin/sh
+
+xrandr --newmode "3440x1440_165.00" 1236.00 3440 3728 4112 4768 1440 1443 1453 1579 -hsync +vsync
+xrandr --addmode Virtual-1 "3440x1440_165.00"
+xrandr --output Virtual-1 --mode "3440x1440_165.00"
+
+export _JAVA_AWT_WM_NONREPARENTING=1
+
+# copy/paste
+killall spice-vdagent 2>/dev/null
+spice-vdagent &
