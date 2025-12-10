@@ -47,7 +47,6 @@ info() {
 
 # --- 3. Paths & Variables ---
 # Assuming script is run from inside the repo (e.g., ~/dotfiles/kali/install.sh)
-# We resolve the parent directories to find the root.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KALI_DIR="$SCRIPT_DIR"
 DOTFILES_DIR="$(dirname "$KALI_DIR")"
@@ -59,7 +58,6 @@ CONFIG_DIR="$HOME/.config"
 step_1_update_system() {
     print_step "Step 1/5: Updating System Packages"
     info "Running apt update and upgrade. This might take a while..."
-    # Using DEBIAN_FRONTEND=noninteractive to avoid some prompts during upgrade
     sudo DEBIAN_FRONTEND=noninteractive apt update -y
     sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y
     success "System updated successfully."
@@ -68,19 +66,18 @@ step_1_update_system() {
 step_2_install_dependencies() {
     print_step "Step 2/5: Installing Core Dependencies"
     
-    # List taken from your image (image_2.png line 3)
     DEPENDENCIES=(
         "git"
         "kitty"
-        "bat"
-        "lsd"
         "zsh"
         "curl"
         "rofi"
+        "bat"
+        "lsd"
         "trayer"
         "xmonad"
         "xmobar"
-        "build-essential" # Added for general compilation needs
+        "build-essential"
     )
 
     info "Installing packages: ${DEPENDENCIES[*]}"
@@ -96,24 +93,20 @@ step_3_install_fonts() {
     if [ -f "$FONT_SCRIPT" ]; then
         info "Found font script. Executing..."
         chmod +x "$FONT_SCRIPT"
-        # Executing the external script. If it fails, 'set -e' will trigger here.
         "$FONT_SCRIPT"
         success "NerdFonts installation complete."
     else
-        echo -e "${RED}[ERROR]${NC} Font installation script not found at: $FONT_SCRIPT"
-        # Manually exiting 1 just in case, though set -e usually catches missing files too.
-        exit 1
+        echo -e "${YELLOW}[WARN]${NC} Font script not found at $FONT_SCRIPT. Skipping."
     fi
 }
 
 step_4_link_configs() {
-    print_step "Step 4/5: Linking Configurations (Common)"
+    print_step "Step 4/5: Linking Configurations"
     
     mkdir -p "$CONFIG_DIR"
     info "Linking configs from $COMMON_DIR to $CONFIG_DIR..."
 
-    # 1. Link Directories shown in image_3.png
-    # Using an array for easy additions later
+    # 1. Link Common Directories (alacritty, kitty, rofi)
     DIRS_TO_LINK=("alacritty" "kitty" "rofi")
 
     for dir in "${DIRS_TO_LINK[@]}"; do
@@ -121,7 +114,6 @@ step_4_link_configs() {
         TARGET="$CONFIG_DIR/$dir"
         
         if [ -d "$SOURCE" ]; then
-            # ln -sfn: symlink, force (overwrite existing links), no-dereference
             ln -sfn "$SOURCE" "$TARGET"
             info "Linked directory: $dir"
         else
@@ -129,21 +121,36 @@ step_4_link_configs() {
         fi
     done
 
-    # 2. Link standalone files (like starship.toml)
+    # 2. Link Common Files (starship.toml)
     if [ -f "$COMMON_DIR/starship.toml" ]; then
         ln -sf "$COMMON_DIR/starship.toml" "$CONFIG_DIR/starship.toml"
         info "Linked file: starship.toml"
     fi
 
-    # 3. Link Kali-specific ZSH setup (Optional phase for later, but good to have ready)
-    if [ -f "$KALI_DIR/.zshrc" ]; then
-         # Backup existing zshrc if it's a real file
-         [ -f "$HOME/.zshrc" ] && [ ! -L "$HOME/.zshrc" ] && mv "$HOME/.zshrc" "$HOME/.zshrc.bak"
-         ln -sf "$KALI_DIR/.zshrc" "$HOME/.zshrc"
-         info "Linked Kali .zshrc"
-    fi
+    # 3. Link HOME files (.zshrc and .xprofile) [UPDATED]
+    info "Linking Home Directory files (.zshrc, .xprofile)..."
+    
+    # Array of files that need to go to $HOME
+    HOME_FILES=(".zshrc" ".xprofile")
 
-    success "Configurations linked."
+    for file in "${HOME_FILES[@]}"; do
+        SOURCE_FILE="$KALI_DIR/$file"
+        TARGET_FILE="$HOME/$file"
+
+        if [ -f "$SOURCE_FILE" ]; then
+            # Backup if it exists and is not a symlink
+            if [ -f "$TARGET_FILE" ] && [ ! -L "$TARGET_FILE" ]; then
+                mv "$TARGET_FILE" "${TARGET_FILE}.bak"
+                info "Backed up existing $file to ${file}.bak"
+            fi
+            
+            # Create the link
+            ln -sf "$SOURCE_FILE" "$TARGET_FILE"
+            success "Linked $file -> $HOME/$file"
+        else
+             echo -e "${YELLOW}[WARN]${NC} $file not found in $KALI_DIR. Skipping."
+        fi
+    done
 }
 
 step_5_install_starship() {
@@ -153,7 +160,6 @@ step_5_install_starship() {
         info "Starship is already installed. Skipping."
     else
         info "Downloading and running Starship installer script..."
-        # Using sudo to install globally to /usr/local/bin, requiring less path config
         curl -sS https://starship.rs/install.sh | sudo sh -s -- --yes
         success "Starship installed."
     fi
@@ -175,8 +181,7 @@ main() {
     echo -e "${GREEN}  INSTALLATION COMPLETE!  ${NC}"
     echo -e "${GREEN}======================================${NC}"
     echo -e "Please restart your session or reboot to apply all changes."
-    echo -e "If you installed zsh for the first time, you might need to change default shell: chsh -s \$(which zsh)"
+    echo -e "Note: If your shell looks basic, run: chsh -s \$(which zsh)"
 }
 
-# Run main function
 main
