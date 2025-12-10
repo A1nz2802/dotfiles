@@ -52,11 +52,16 @@ step_1_update_system() {
 }
 
 step_2_install_dependencies() {
-    print_step "Step 2/6: Installing Core Dependencies"
+    print_step "Step 2/6: Installing Core Dependencies & Node.js"
+    
+    info "Adding NodeSource repository for Node.js 22.x..."
+    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     
     DEPENDENCIES=(
         "git"
         "kitty"
+        "neovim"
+        "spice-vdagent"
         "zsh"
         "curl"
         "jq"
