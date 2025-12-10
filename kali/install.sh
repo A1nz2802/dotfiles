@@ -44,7 +44,7 @@ CONFIG_DIR="$HOME/.config"
 # --- 4. Main Installation Steps ---
 
 step_1_update_system() {
-    print_step "Step 1/6: Updating System Packages"
+    print_step "Step 1/7: Updating System Packages"
     info "Running apt update and upgrade. This might take a while..."
     sudo DEBIAN_FRONTEND=noninteractive apt update -y
     sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y
@@ -52,7 +52,7 @@ step_1_update_system() {
 }
 
 step_2_install_dependencies() {
-    print_step "Step 2/6: Installing Core Dependencies & Node.js"
+    print_step "Step 2/7: Installing Core Dependencies & Node.js"
     
     info "Adding NodeSource repository for Node.js 22.x..."
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
@@ -72,6 +72,7 @@ step_2_install_dependencies() {
         "build-essential"
         "nodejs"
         "npm"
+        "ly"   # [AGREGADO] Display Manager
     )
 
     info "Installing packages: ${DEPENDENCIES[*]}"
@@ -80,7 +81,7 @@ step_2_install_dependencies() {
 }
 
 step_3_install_fonts() {
-    print_step "Step 3/6: Installing NerdFonts"
+    print_step "Step 3/7: Installing NerdFonts"
     
     FONT_SCRIPT="$KALI_DIR/install_fonts.sh"
 
@@ -95,12 +96,12 @@ step_3_install_fonts() {
 }
 
 step_4_link_configs() {
-    print_step "Step 4/6: Linking Configurations"
+    print_step "Step 4/7: Linking Configurations"
     
     mkdir -p "$CONFIG_DIR"
-    info "Linking configs from $COMMON_DIR to $CONFIG_DIR..."
-
-    # 1. Link Common Directories (alacritty, kitty, rofi)
+    
+    # --- 4.1 Link Common Directories ---
+    info "Linking configs from COMMON to .config..."
     DIRS_TO_LINK=("alacritty" "kitty" "rofi")
 
     for dir in "${DIRS_TO_LINK[@]}"; do
@@ -109,21 +110,37 @@ step_4_link_configs() {
         
         if [ -d "$SOURCE" ]; then
             ln -sfn "$SOURCE" "$TARGET"
-            info "Linked directory: $dir"
+            info "Linked directory (Common): $dir"
         else
-            echo -e "${YELLOW}[WARN]${NC} Source directory not found, skipping: $SOURCE"
+            echo -e "${RED}[ERROR]${NC} Critical directory missing: $SOURCE"
+            exit 1
         fi
     done
 
-    # 2. Link Common Files (starship.toml)
+    # --- 4.2 Link Kali Specific Configs (xmonad, xmobar) --
+    info "Linking configs from KALI to .config..."
+    KALI_CONFIGS=("xmonad" "xmobar")
+
+    for dir in "${KALI_CONFIGS[@]}"; do
+        SOURCE="$KALI_DIR/$dir"
+        TARGET="$CONFIG_DIR/$dir"
+        
+        if [ -d "$SOURCE" ]; then
+            ln -sfn "$SOURCE" "$TARGET"
+            info "Linked directory (Kali): $dir"
+        else
+            echo -e "${YELLOW}[WARN]${NC} Kali config directory missing: $SOURCE. Skipping."
+        fi
+    done
+
+    # --- 4.3 Link Common Files ---
     if [ -f "$COMMON_DIR/starship.toml" ]; then
         ln -sf "$COMMON_DIR/starship.toml" "$CONFIG_DIR/starship.toml"
         info "Linked file: starship.toml"
     fi
 
-    # 3. Link HOME files (.zshrc and .xprofile)
+    # --- 4.4 Link HOME files (.zshrc, .xprofile) ---
     info "Linking Home Directory files (.zshrc, .xprofile)..."
-    
     HOME_FILES=(".zshrc" ".xprofile")
 
     for file in "${HOME_FILES[@]}"; do
@@ -139,13 +156,14 @@ step_4_link_configs() {
             ln -sf "$SOURCE_FILE" "$TARGET_FILE"
             success "Linked $file -> $HOME/$file"
         else
-             echo -e "${YELLOW}[WARN]${NC} $file not found in $KALI_DIR. Skipping."
+             echo -e "${RED}[ERROR]${NC} Critical config file missing: $SOURCE_FILE"
+             exit 1
         fi
     done
 }
 
 step_5_install_starship() {
-    print_step "Step 5/6: Installing Starship Prompt"
+    print_step "Step 5/7: Installing Starship Prompt"
     
     if command -v starship &> /dev/null; then
         info "Starship is already installed. Skipping."
@@ -157,43 +175,49 @@ step_5_install_starship() {
 }
 
 step_6_setup_neovim() {
-    print_step "Step 6/6: Setting up Neovim Configuration"
+    print_step "Step 6/7: Setting up Neovim Configuration"
     
     NVIM_CONFIG_DIR="$HOME/.config/nvim"
     REPO_URL="https://github.com/A1nz2802/nvim.git"
 
-    # Backup existing nvim config if present
     if [ -d "$NVIM_CONFIG_DIR" ]; then
-        info "Existing Neovim config found. Backing up to ${NVIM_CONFIG_DIR}.bak"
-        # Removing old backup if exists to avoid conflicts, or use timestamp
+        info "Existing Neovim config found. Backing up..."
         rm -rf "${NVIM_CONFIG_DIR}.bak"
         mv "$NVIM_CONFIG_DIR" "${NVIM_CONFIG_DIR}.bak"
     fi
 
     info "Cloning Neovim config from $REPO_URL..."
     git clone "$REPO_URL" "$NVIM_CONFIG_DIR"
+    success "Neovim configuration installed."
+}
+
+step_7_enable_services() {
+    print_step "Step 7/7: Enabling System Services"
     
-    success "Neovim configuration installed from GitHub."
+    if systemctl list-unit-files | grep -q ly.service; then
+        info "Enabling Ly Display Manager..."
+        sudo systemctl enable ly
+        success "Ly enabled."
+    else
+        echo -e "${YELLOW}[WARN]${NC} Ly service not found. Did it install correctly?"
+    fi
 }
 
 # --- 5. Execution Flow ---
-
 main() {
-    # Ensure sudo permissions upfront
     sudo -v
-
     step_1_update_system
     step_2_install_dependencies
     step_3_install_fonts
     step_4_link_configs
     step_5_install_starship
     step_6_setup_neovim
+    step_7_enable_services
 
     echo -e "\n${GREEN}======================================${NC}"
     echo -e "${GREEN}  INSTALLATION COMPLETE!  ${NC}"
     echo -e "${GREEN}======================================${NC}"
-    echo -e "Please restart your session or reboot to apply all changes."
-    echo -e "Note: Open 'nvim' and run :PackerSync or your plugin manager install command."
+    echo -e "Please reboot your system to start Ly and XMonad."
 }
 
 main
