@@ -48,7 +48,8 @@ info() {
 # --- 3. Paths & Variables ---
 # Assuming script is run from inside the repo (e.g., ~/dotfiles/kali/install.sh)
 # We resolve the parent directories to find the root.
-KALI_DIR="kali"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KALI_DIR="$SCRIPT_DIR"
 DOTFILES_DIR="$(dirname "$KALI_DIR")"
 COMMON_DIR="$DOTFILES_DIR/common"
 CONFIG_DIR="$HOME/.config"
@@ -71,6 +72,8 @@ step_2_install_dependencies() {
     DEPENDENCIES=(
         "git"
         "kitty"
+        "bat"
+        "lsd"
         "zsh"
         "curl"
         "rofi"
