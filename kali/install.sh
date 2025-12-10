@@ -1,17 +1,5 @@
 #!/bin/bash
 
-# update system
-
-# install dependencies: sudo apt install git kitty zsh curl rofi trayer xmonad xmobar
-
-# clone repo: https://github.com/A1nz2802/dotfiles.git
-
-# install nerdfonts: execute font install script in kali/install_fonts.sh from my dotfiles repo
-
-# copy my apps config to .config directory
-
-# install starship prompt, use this: curl -sS https://starship.rs/install.sh | sh
-
 # --- 1. Safety & Error Handling ---
 # Exit immediately if a command exits with a non-zero status
 set -e
@@ -56,7 +44,7 @@ CONFIG_DIR="$HOME/.config"
 # --- 4. Main Installation Steps ---
 
 step_1_update_system() {
-    print_step "Step 1/5: Updating System Packages"
+    print_step "Step 1/6: Updating System Packages"
     info "Running apt update and upgrade. This might take a while..."
     sudo DEBIAN_FRONTEND=noninteractive apt update -y
     sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y
@@ -64,20 +52,21 @@ step_1_update_system() {
 }
 
 step_2_install_dependencies() {
-    print_step "Step 2/5: Installing Core Dependencies"
+    print_step "Step 2/6: Installing Core Dependencies"
     
     DEPENDENCIES=(
         "git"
         "kitty"
         "zsh"
         "curl"
+        "jq"
         "rofi"
-        "bat"
-        "lsd"
         "trayer"
         "xmonad"
         "xmobar"
         "build-essential"
+        "nodejs"
+        "npm"
     )
 
     info "Installing packages: ${DEPENDENCIES[*]}"
@@ -86,7 +75,7 @@ step_2_install_dependencies() {
 }
 
 step_3_install_fonts() {
-    print_step "Step 3/5: Installing NerdFonts"
+    print_step "Step 3/6: Installing NerdFonts"
     
     FONT_SCRIPT="$KALI_DIR/install_fonts.sh"
 
@@ -101,7 +90,7 @@ step_3_install_fonts() {
 }
 
 step_4_link_configs() {
-    print_step "Step 4/5: Linking Configurations"
+    print_step "Step 4/6: Linking Configurations"
     
     mkdir -p "$CONFIG_DIR"
     info "Linking configs from $COMMON_DIR to $CONFIG_DIR..."
@@ -127,10 +116,9 @@ step_4_link_configs() {
         info "Linked file: starship.toml"
     fi
 
-    # 3. Link HOME files (.zshrc and .xprofile) [UPDATED]
+    # 3. Link HOME files (.zshrc and .xprofile)
     info "Linking Home Directory files (.zshrc, .xprofile)..."
     
-    # Array of files that need to go to $HOME
     HOME_FILES=(".zshrc" ".xprofile")
 
     for file in "${HOME_FILES[@]}"; do
@@ -138,13 +126,11 @@ step_4_link_configs() {
         TARGET_FILE="$HOME/$file"
 
         if [ -f "$SOURCE_FILE" ]; then
-            # Backup if it exists and is not a symlink
             if [ -f "$TARGET_FILE" ] && [ ! -L "$TARGET_FILE" ]; then
                 mv "$TARGET_FILE" "${TARGET_FILE}.bak"
                 info "Backed up existing $file to ${file}.bak"
             fi
             
-            # Create the link
             ln -sf "$SOURCE_FILE" "$TARGET_FILE"
             success "Linked $file -> $HOME/$file"
         else
@@ -154,7 +140,7 @@ step_4_link_configs() {
 }
 
 step_5_install_starship() {
-    print_step "Step 5/5: Installing Starship Prompt"
+    print_step "Step 5/6: Installing Starship Prompt"
     
     if command -v starship &> /dev/null; then
         info "Starship is already installed. Skipping."
@@ -163,6 +149,26 @@ step_5_install_starship() {
         curl -sS https://starship.rs/install.sh | sudo sh -s -- --yes
         success "Starship installed."
     fi
+}
+
+step_6_setup_neovim() {
+    print_step "Step 6/6: Setting up Neovim Configuration"
+    
+    NVIM_CONFIG_DIR="$HOME/.config/nvim"
+    REPO_URL="https://github.com/A1nz2802/nvim.git"
+
+    # Backup existing nvim config if present
+    if [ -d "$NVIM_CONFIG_DIR" ]; then
+        info "Existing Neovim config found. Backing up to ${NVIM_CONFIG_DIR}.bak"
+        # Removing old backup if exists to avoid conflicts, or use timestamp
+        rm -rf "${NVIM_CONFIG_DIR}.bak"
+        mv "$NVIM_CONFIG_DIR" "${NVIM_CONFIG_DIR}.bak"
+    fi
+
+    info "Cloning Neovim config from $REPO_URL..."
+    git clone "$REPO_URL" "$NVIM_CONFIG_DIR"
+    
+    success "Neovim configuration installed from GitHub."
 }
 
 # --- 5. Execution Flow ---
@@ -176,12 +182,13 @@ main() {
     step_3_install_fonts
     step_4_link_configs
     step_5_install_starship
+    step_6_setup_neovim
 
     echo -e "\n${GREEN}======================================${NC}"
     echo -e "${GREEN}  INSTALLATION COMPLETE!  ${NC}"
     echo -e "${GREEN}======================================${NC}"
     echo -e "Please restart your session or reboot to apply all changes."
-    echo -e "Note: If your shell looks basic, run: chsh -s \$(which zsh)"
+    echo -e "Note: Open 'nvim' and run :PackerSync or your plugin manager install command."
 }
 
 main
