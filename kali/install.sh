@@ -150,6 +150,7 @@ step_6_install_ly_source() {
     sudo DEBIAN_FRONTEND=noninteractive apt install -y libpam0g-dev libxcb-xkb-dev
 
     # --- B. Install Zig (Temporary) ---
+    # NOTE: Keeping official ziglang.org for binaries (faster than git clone)
     ZIG_VER="0.13.0"
     ZIG_URL="https://ziglang.org/download/${ZIG_VER}/zig-linux-x86_64-${ZIG_VER}.tar.xz"
     INSTALL_DIR="$HOME/.local/bin"
@@ -171,8 +172,9 @@ step_6_install_ly_source() {
     BUILD_DIR="$KALI_DIR/ly_build"
     if [ -d "$BUILD_DIR" ]; then rm -rf "$BUILD_DIR"; fi
     
-    info "Cloning Ly repo..."
-    git clone --recurse-submodules https://github.com/fairyglade/ly.git "$BUILD_DIR"
+    # UPDATE: Changed to Codeberg as GitHub repo is archived/moved
+    info "Cloning Ly repo from Codeberg..."
+    git clone --recurse-submodules https://codeberg.org/fairyglade/ly "$BUILD_DIR"
     cd "$BUILD_DIR"
 
     info "Compiling Ly (ReleaseSafe)..."
