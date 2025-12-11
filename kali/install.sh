@@ -142,81 +142,112 @@ step_5_starship_nvim() {
 }
 
 step_6_install_ly_source() {
-    print_step "Step 6/7: Compiling & Installing Ly (Zig)"
+    print_step "Step 6/7: Compiling & Installing Ly (Zig 0.15.2)"
     
     # --- A. Install Build Dependencies ---
     info "Installing temporary build dependencies..."
-    # These are needed ONLY for compiling Ly
     sudo DEBIAN_FRONTEND=noninteractive apt install -y libpam0g-dev libxcb-xkb-dev
 
-    # --- B. Install Zig (Temporary) ---
-    # NOTE: Keeping official ziglang.org for binaries (faster than git clone)
-    ZIG_VER="0.13.0"
-    ZIG_URL="https://ziglang.org/download/${ZIG_VER}/zig-linux-x86_64-${ZIG_VER}.tar.xz"
+    # --- B. Install Zig 0.15.2 (Stable) ---
+    ZIG_VER="0.15.2"
+    # Note: Confirmed working URL
+    ZIG_URL="https://ziglang.org/download/${ZIG_VER}/zig-x86_64-linux-${ZIG_VER}.tar.xz"
+    # Note: Folder name inside tarball uses 'x86_64-linux' order
+    ZIG_EXTRACTED_NAME="zig-x86_64-linux-${ZIG_VER}"
+    
     INSTALL_DIR="$HOME/.local/bin"
     ZIG_PATH="$HOME/.local/zig-${ZIG_VER}"
 
-    if ! command -v zig &> /dev/null; then
+    # Check if exact version is already installed
+    if ! command -v zig &> /dev/null || [[ "$(zig version)" != "${ZIG_VER}"* ]]; then
         info "Downloading Zig ${ZIG_VER}..."
         mkdir -p "$HOME/.local" "$INSTALL_DIR"
-        wget -qO /tmp/zig.tar.xz "$ZIG_URL"
+        
+        if ! wget -qO /tmp/zig.tar.xz "$ZIG_URL"; then
+             echo -e "${RED}[ERROR]${NC} Failed to download Zig. Check URL."; exit 1
+        fi
+        
+        # Cleanup and extraction
+        rm -rf "$ZIG_PATH" 
+        rm -rf "$HOME/.local/$ZIG_EXTRACTED_NAME"
+        rm -f "$INSTALL_DIR/zig"
+
         tar -xf /tmp/zig.tar.xz -C "$HOME/.local"
-        mv "$HOME/.local/zig-linux-x86_64-${ZIG_VER}" "$ZIG_PATH"
+        
+        if [ -d "$HOME/.local/$ZIG_EXTRACTED_NAME" ]; then
+            mv "$HOME/.local/$ZIG_EXTRACTED_NAME" "$ZIG_PATH"
+        else
+            echo -e "${RED}[ERROR]${NC} Folder not found: $ZIG_EXTRACTED_NAME"; exit 1
+        fi
+        
         ln -sf "$ZIG_PATH/zig" "$INSTALL_DIR/zig"
         export PATH="$INSTALL_DIR:$PATH"
+        success "Zig ${ZIG_VER} installed successfully."
     else
-        info "Zig found. Using existing version."
+        info "Zig ${ZIG_VER} is already installed."
+        export PATH="$INSTALL_DIR:$PATH"
     fi
 
-    # --- C. Clone and Build Ly ---
+    # --- C. Clone and Build Ly (Latest) ---
     BUILD_DIR="$KALI_DIR/ly_build"
     if [ -d "$BUILD_DIR" ]; then rm -rf "$BUILD_DIR"; fi
     
-    # UPDATE: Changed to Codeberg as GitHub repo is archived/moved
-    info "Cloning Ly repo from Codeberg..."
+    info "Cloning Ly repo from Codeberg (Latest)..."
     git clone --recurse-submodules https://codeberg.org/fairyglade/ly "$BUILD_DIR"
     cd "$BUILD_DIR"
 
-    info "Compiling Ly (ReleaseSafe)..."
-    "$INSTALL_DIR/zig" build installsystemd -Doptimize=ReleaseSafe --prefix /usr || \
+    info "Compiling and Installing Ly..."
+    
+    # Using 'installexe' with '-Dinit_system=systemd' 
+    # This compiles AND installs the binary + systemd service automatically.
+    # Sudo is required for writing to /usr and /etc.
+    sudo "$INSTALL_DIR/zig" build installexe -Dinit_system=systemd -Doptimize=ReleaseSafe || \
     {
-        info "Standard install failed, attempting manual binary copy..."
-        "$INSTALL_DIR/zig" build -Doptimize=ReleaseSafe
-        sudo cp zig-out/bin/ly /usr/bin/ly
-        sudo cp res/ly.service /etc/systemd/system/ly.service
+        echo -e "${RED}[ERROR]${NC} Compilation/Installation failed."; exit 1
     }
     
     cd "$SCRIPT_DIR"
 
-    # --- D. CLEANUP (Removing build tools) ---
-    print_step "Cleanup: Removing build tools and artifacts"
-    
-    info "Removing Ly source code..."
+    # --- D. CLEANUP ---
+    print_step "Cleanup: Removing build tools"
     rm -rf "$BUILD_DIR"
+    # Optional: Remove Zig to save space
+    # rm -rf "$ZIG_PATH"
+    # rm -f "$INSTALL_DIR/zig"
     
-    info "Removing Zig compiler..."
-    rm -rf "$ZIG_PATH"
-    rm -f "$INSTALL_DIR/zig"
-    
-    info "Removing development libraries (libpam0g-dev, libxcb-xkb-dev)..."
     sudo apt remove -y libpam0g-dev libxcb-xkb-dev
     sudo apt autoremove -y
     
-    success "Ly installed and build environment cleaned."
+    success "Ly installed successfully (Binary + Systemd Service)."
 }
 
 step_7_enable_services() {
     print_step "Step 7/7: Enabling Services"
     
-    # Disable other DMs
+    # 1. Disable other Display Managers
+    info "Disabling current display managers..."
     sudo systemctl disable lightdm gdm3 sddm 2>/dev/null || true
     
-    # Enable Ly
-    if [ -f "/etc/systemd/system/ly.service" ] || [ -f "/usr/lib/systemd/system/ly.service" ]; then
+    # 2. Enable Ly (Detecting if new 'ly@' or old 'ly' service exists)
+    if [ -f "/usr/lib/systemd/system/ly@.service" ]; then
+        info "Found new Ly template service (ly@.service)."
+        
+        # Enabling Ly specifically on TTY2
+        # This is standard for TUI managers to avoid conflicts with boot logs on tty1
+        sudo systemctl enable ly@tty2.service
+        
+        # Ensure it is the default display manager
+        sudo ln -sf /usr/lib/systemd/system/ly@.service /etc/systemd/system/display-manager.service
+        
+        success "Ly service enabled on TTY2."
+        
+    elif [ -f "/etc/systemd/system/ly.service" ] || [ -f "/usr/lib/systemd/system/ly.service" ]; then
+        # Fallback for legacy versions
+        info "Found legacy Ly service."
         sudo systemctl enable ly
         success "Ly service enabled."
     else
-        echo -e "${RED}[ERROR]${NC} Ly service not found. Compilation might have failed."
+        echo -e "${RED}[ERROR]${NC} Ly service file not found. Check compilation logs."
         exit 1
     fi
 }
