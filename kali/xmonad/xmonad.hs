@@ -90,13 +90,13 @@ myTerminal :: String
 myTerminal = "kitty"
 
 myBrowser :: String
-myBrowser = "brave"
+myBrowser = "firefox"
 
 myFileManager :: String
 myFileManager = "pcmanfm"
 
 myEditor :: String
-myEditor = "vscode"
+myEditor = "nvim"
 -- myEditor = myTerminal ++ " -e nvim "    -- Sets vim as editor
 
 myBorderWidth :: Dimension

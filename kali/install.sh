@@ -46,7 +46,7 @@ step_2_install_dependencies() {
     DEPENDENCIES=(
         "git" "kitty" "neovim" "spice-vdagent" "zsh" "curl" "wget" "jq"
         "rofi" "trayer" "xmonad" "xmobar" "build-essential" "nodejs"
-        "brightnessctl" 
+        "brightnessctl xserver-xorg xinit lsd bat" 
     )
 
     info "Installing: ${DEPENDENCIES[*]}"
@@ -59,7 +59,7 @@ step_3_install_fonts() {
     FONT_SCRIPT="$KALI_DIR/install_fonts.sh"
     if [ -f "$FONT_SCRIPT" ]; then
         chmod +x "$FONT_SCRIPT"
-        "$FONT_SCRIPT"
+        sudo "$FONT_SCRIPT"
         success "Fonts installed."
     else
         echo -e "${YELLOW}[WARN]${NC} Font script not found. Skipping."
@@ -70,7 +70,7 @@ step_4_copy_configs() {
     print_step "Step 4/9: Copying Configurations"
     mkdir -p "$CONFIG_DIR"
 
-    # 1. Common Directories (Using COPY instead of Symlinks)
+    # Common Directories
     DIRS_TO_COPY=("alacritty" "kitty") 
     for dir in "${DIRS_TO_COPY[@]}"; do
         SOURCE="$COMMON_DIR/$dir"
@@ -91,7 +91,6 @@ step_4_copy_configs() {
         fi
     done
 
-    # 2. Kali Specific (xmonad/xmobar) - COPYING
     KALI_APPS=("xmonad" "xmobar")
     for dir in "${KALI_APPS[@]}"; do
         SOURCE="$KALI_DIR/$dir"
@@ -109,7 +108,7 @@ step_4_copy_configs() {
         fi
     done
 
-    # 3. Files to HOME (.zshrc, .xprofile) - COPYING
+    # Files to HOME (.zshrc, .xprofile)
     HOME_FILES=(".zshrc" ".xprofile")
     for file in "${HOME_FILES[@]}"; do
         SOURCE="$KALI_DIR/$file"
@@ -125,7 +124,7 @@ step_4_copy_configs() {
         fi
     done
     
-    # 4. Starship config - COPYING
+    # Starship config
     if [ -f "$COMMON_DIR/starship.toml" ]; then
         cp "$COMMON_DIR/starship.toml" "$CONFIG_DIR/starship.toml"
         success "Copied starship.toml"
@@ -210,12 +209,12 @@ step_7_configure_rofi() {
     
     info "Configuring Rofi config.rasi..."
     
-    # 1. Ensure clean directory exists
+    # Ensure clean directory exists
     if [ ! -d "$ROFI_CONFIG_DIR" ]; then
         mkdir -p "$ROFI_CONFIG_DIR"
     fi
 
-    # 2. Copy the config file directly
+    # Copy the config file directly
     if [ -f "$ROFI_SOURCE_CONF" ]; then       
         cp "$ROFI_SOURCE_CONF" "$ROFI_TARGET_CONF"
         success "Copied config.rasi to $ROFI_TARGET_CONF"
@@ -228,11 +227,11 @@ step_7_configure_rofi() {
 step_8_install_ly_source() {
     print_step "Step 8/9: Compiling & Installing Ly (Zig 0.15.2)"
     
-    # --- A. Install Build Dependencies (REQUIRES SUDO) ---
+    # --- Install Build Dependencies (REQUIRES SUDO) ---
     info "Installing temporary build dependencies..."
     sudo DEBIAN_FRONTEND=noninteractive apt install -y libpam0g-dev libxcb-xkb-dev
 
-    # --- B. Install Zig 0.15.2 (NO SUDO - User Space) ---
+    # --- Install Zig 0.15.2 (NO SUDO - User Space) ---
     ZIG_VER="0.15.2"
     ZIG_URL="https://ziglang.org/download/${ZIG_VER}/zig-x86_64-linux-${ZIG_VER}.tar.xz"
     ZIG_EXTRACTED_NAME="zig-x86_64-linux-${ZIG_VER}"
@@ -273,7 +272,7 @@ step_8_install_ly_source() {
         export PATH="$INSTALL_DIR:$PATH"
     fi
 
-    # --- C. Clone and Build Ly ---
+    # --- Clone and Build Ly ---
     BUILD_DIR="$KALI_DIR/ly_build"
     
     # Remove previous build dir
@@ -296,6 +295,11 @@ step_8_install_ly_source() {
     # --- D. CLEANUP ---
     print_step "Cleanup: Removing build tools"
     sudo rm -rf "$BUILD_DIR"
+
+    info "Removing Zig compiler (Runtime not required)..."
+    rm -rf "$ZIG_PATH"
+    rm -f "$INSTALL_DIR/zig"
+
     sudo apt remove -y libpam0g-dev libxcb-xkb-dev
     sudo apt autoremove -y
     success "Ly installed successfully (Binary + Systemd Service)."
