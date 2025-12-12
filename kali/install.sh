@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# ================================================
-# KALI LINUX AUTOMATED SETUP SCRIPT
-# ================================================
-
 # --- 1. Safety & Error Handling ---
 set -e
 RED='\033[0;31m'
@@ -32,7 +28,6 @@ COMMON_DIR="$DOTFILES_DIR/common"
 CONFIG_DIR="$HOME/.config"
 
 # --- 4. Main Installation Steps ---
-
 step_1_update_system() {
     print_step "Step 1/7: Updating System Packages"
     info "Running apt update..."
@@ -43,7 +38,7 @@ step_1_update_system() {
 step_2_install_dependencies() {
     print_step "Step 2/7: Installing Runtime Dependencies"
     
-    # Node.js 22.x Repo (Checks if already added)
+    # Node.js 22.x Repo (Checks if already added, required for neovim plugins)
     if ! command -v node &> /dev/null; then
         info "Adding NodeSource repo..."
         curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
@@ -133,11 +128,13 @@ step_5_starship_nvim() {
 
     # Neovim Config
     NVIM_DIR="$HOME/.config/nvim"
+    NVIM_REPO="https://github.com/A1nz2802/nvim.git"
+
     if [ -d "$NVIM_DIR" ]; then
         rm -rf "${NVIM_DIR}.bak"
         mv "$NVIM_DIR" "${NVIM_DIR}.bak"
     fi
-    git clone "https://github.com/A1nz2802/nvim.git" "$NVIM_DIR"
+    git clone "$NVIM_REPO" "$NVIM_DIR"
     success "Neovim & Starship setup complete."
 }
 
