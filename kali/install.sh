@@ -38,13 +38,11 @@ step_1_update_system() {
 step_2_install_dependencies() {
     print_step "Step 2/9: Installing Runtime Dependencies"
     
-    # Node.js 22.x Repo
     if ! command -v node &> /dev/null; then
         info "Adding NodeSource repo..."
         curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     fi
     
-    # List of PACKAGES TO KEEP (Runtime)
     DEPENDENCIES=(
         "git" "kitty" "neovim" "spice-vdagent" "zsh" "curl" "wget" "jq"
         "rofi" "trayer" "xmonad" "xmobar" "build-essential" "nodejs"
@@ -68,52 +66,70 @@ step_3_install_fonts() {
     fi
 }
 
-step_4_link_configs() {
-    print_step "Step 4/9: Linking Configurations"
+step_4_copy_configs() {
+    print_step "Step 4/9: Copying Configurations"
     mkdir -p "$CONFIG_DIR"
 
-    # 1. Common Directories
-    DIRS_TO_LINK=("alacritty" "kitty" "rofi")
-    for dir in "${DIRS_TO_LINK[@]}"; do
+    # 1. Common Directories (Using COPY instead of Symlinks)
+    DIRS_TO_COPY=("alacritty" "kitty") 
+    for dir in "${DIRS_TO_COPY[@]}"; do
         SOURCE="$COMMON_DIR/$dir"
         TARGET="$CONFIG_DIR/$dir"
+        
         if [ -d "$SOURCE" ]; then
-            ln -sfn "$SOURCE" "$TARGET"
-            info "Linked: $dir"
+            # Remove existing directory to ensure a clean copy (backup if needed)
+            if [ -d "$TARGET" ]; then
+                info "Backing up existing $dir config..."
+                rm -rf "${TARGET}.bak"
+                mv "$TARGET" "${TARGET}.bak"
+            fi
+            
+            cp -r "$SOURCE" "$TARGET"
+            success "Copied directory: $dir"
         else
             echo -e "${RED}[ERROR]${NC} Missing common dir: $SOURCE"; exit 1
         fi
     done
 
-    # 2. Kali Specific (xmonad/xmobar)
+    # 2. Kali Specific (xmonad/xmobar) - COPYING
     KALI_APPS=("xmonad" "xmobar")
     for dir in "${KALI_APPS[@]}"; do
         SOURCE="$KALI_DIR/$dir"
         TARGET="$CONFIG_DIR/$dir"
         if [ -d "$SOURCE" ]; then
-            ln -sfn "$SOURCE" "$TARGET"
-            info "Linked: $dir"
+            if [ -d "$TARGET" ]; then
+                rm -rf "${TARGET}.bak"
+                mv "$TARGET" "${TARGET}.bak"
+            fi
+            
+            cp -r "$SOURCE" "$TARGET"
+            success "Copied directory: $dir"
         else
             echo -e "${YELLOW}[WARN]${NC} Missing $dir in kali folder. Skipping."
         fi
     done
 
-    # 3. Files to HOME (.zshrc, .xprofile)
+    # 3. Files to HOME (.zshrc, .xprofile) - COPYING
     HOME_FILES=(".zshrc" ".xprofile")
     for file in "${HOME_FILES[@]}"; do
         SOURCE="$KALI_DIR/$file"
         TARGET="$HOME/$file"
         if [ -f "$SOURCE" ]; then
-            [ -f "$TARGET" ] && [ ! -L "$TARGET" ] && mv "$TARGET" "${TARGET}.bak"
-            ln -sf "$SOURCE" "$TARGET"
-            success "Linked $file"
+            if [ -f "$TARGET" ]; then
+                mv "$TARGET" "${TARGET}.bak"
+            fi
+            cp "$SOURCE" "$TARGET"
+            success "Copied file: $file"
         else
             echo -e "${RED}[ERROR]${NC} Missing file: $SOURCE"; exit 1
         fi
     done
     
-    # 4. Starship config
-    [ -f "$COMMON_DIR/starship.toml" ] && ln -sf "$COMMON_DIR/starship.toml" "$CONFIG_DIR/starship.toml"
+    # 4. Starship config - COPYING
+    if [ -f "$COMMON_DIR/starship.toml" ]; then
+        cp "$COMMON_DIR/starship.toml" "$CONFIG_DIR/starship.toml"
+        success "Copied starship.toml"
+    fi
 }
 
 step_5_install_starship() {
@@ -146,7 +162,7 @@ step_6_install_nvim() {
 }
 
 step_7_configure_rofi() {
-    print_step "Step 7/9: Configuring Rofi (Scripts & Themes)"
+    print_step "Step 7/9: Configuring Rofi (Scripts, Themes & Config)"
 
     # --- A. Setup rofi-web-search script ---
     LOCAL_BIN="$HOME/.local/bin"
@@ -160,7 +176,6 @@ step_7_configure_rofi() {
         cp "$SOURCE_SCRIPT" "$TARGET_SCRIPT"
         chmod +x "$TARGET_SCRIPT"
         
-        # Add local bin to PATH temporarily for this session if not present
         if [[ ":$PATH:" != *":$LOCAL_BIN:"* ]]; then
             export PATH="$LOCAL_BIN:$PATH"
         fi
@@ -179,28 +194,45 @@ step_7_configure_rofi() {
     git clone --depth 1 "$THEMES_REPO_URL" "$TEMP_DIR"
 
     info "Installing themes to $TARGET_THEMES_DIR..."
-    # We copy ONLY the contents of the 'themes' folder as requested
     if [ -d "$TEMP_DIR/themes" ]; then
-        # sudo is needed for /usr/share
         sudo mkdir -p "$TARGET_THEMES_DIR"
         sudo cp -r "$TEMP_DIR/themes/"* "$TARGET_THEMES_DIR/"
         success "Rofi themes installed."
     else
         echo -e "${RED}[ERROR]${NC} Themes folder not found in cloned repo."; exit 1
     fi
-
-    # Cleanup
     rm -rf "$TEMP_DIR"
+
+    # --- C. Configure Config File (COPY, NO SYMLINK) ---
+    ROFI_SOURCE_CONF="$COMMON_DIR/rofi/config.rasi"
+    ROFI_CONFIG_DIR="$HOME/.config/rofi"
+    ROFI_TARGET_CONF="$ROFI_CONFIG_DIR/config.rasi"
+    
+    info "Configuring Rofi config.rasi..."
+    
+    # 1. Ensure clean directory exists
+    if [ ! -d "$ROFI_CONFIG_DIR" ]; then
+        mkdir -p "$ROFI_CONFIG_DIR"
+    fi
+
+    # 2. Copy the config file directly
+    if [ -f "$ROFI_SOURCE_CONF" ]; then       
+        cp "$ROFI_SOURCE_CONF" "$ROFI_TARGET_CONF"
+        success "Copied config.rasi to $ROFI_TARGET_CONF"
+    else
+         echo -e "${RED}[ERROR]${NC} config.rasi not found at: $ROFI_SOURCE_CONF"
+         exit 1
+    fi
 }
 
 step_8_install_ly_source() {
     print_step "Step 8/9: Compiling & Installing Ly (Zig 0.15.2)"
     
-    # --- A. Install Build Dependencies ---
+    # --- A. Install Build Dependencies (REQUIRES SUDO) ---
     info "Installing temporary build dependencies..."
     sudo DEBIAN_FRONTEND=noninteractive apt install -y libpam0g-dev libxcb-xkb-dev
 
-    # --- B. Install Zig 0.15.2 (Stable) ---
+    # --- B. Install Zig 0.15.2 (NO SUDO - User Space) ---
     ZIG_VER="0.15.2"
     ZIG_URL="https://ziglang.org/download/${ZIG_VER}/zig-x86_64-linux-${ZIG_VER}.tar.xz"
     ZIG_EXTRACTED_NAME="zig-x86_64-linux-${ZIG_VER}"
@@ -212,10 +244,15 @@ step_8_install_ly_source() {
         info "Downloading Zig ${ZIG_VER}..."
         mkdir -p "$HOME/.local" "$INSTALL_DIR"
         
+        if [ -f "/tmp/zig.tar.xz" ]; then
+            sudo rm -f /tmp/zig.tar.xz
+        fi
+        
         if ! wget -qO /tmp/zig.tar.xz "$ZIG_URL"; then
              echo -e "${RED}[ERROR]${NC} Failed to download Zig. Check URL."; exit 1
         fi
         
+        # Cleanup old versions
         rm -rf "$ZIG_PATH" 
         rm -rf "$HOME/.local/$ZIG_EXTRACTED_NAME"
         rm -f "$INSTALL_DIR/zig"
@@ -236,9 +273,11 @@ step_8_install_ly_source() {
         export PATH="$INSTALL_DIR:$PATH"
     fi
 
-    # --- C. Clone and Build Ly (Latest) ---
+    # --- C. Clone and Build Ly ---
     BUILD_DIR="$KALI_DIR/ly_build"
-    if [ -d "$BUILD_DIR" ]; then rm -rf "$BUILD_DIR"; fi
+    
+    # Remove previous build dir
+    if [ -d "$BUILD_DIR" ]; then sudo rm -rf "$BUILD_DIR"; fi
     
     info "Cloning Ly repo from Codeberg (Latest)..."
     git clone --recurse-submodules https://codeberg.org/fairyglade/ly "$BUILD_DIR"
@@ -246,6 +285,7 @@ step_8_install_ly_source() {
 
     info "Compiling and Installing Ly..."
     
+    # Compile & Install (REQUIRES SUDO)
     sudo "$INSTALL_DIR/zig" build installexe -Dinit_system=systemd -Doptimize=ReleaseSafe || \
     {
         echo -e "${RED}[ERROR]${NC} Compilation/Installation failed."; exit 1
@@ -255,7 +295,7 @@ step_8_install_ly_source() {
 
     # --- D. CLEANUP ---
     print_step "Cleanup: Removing build tools"
-    rm -rf "$BUILD_DIR"
+    sudo rm -rf "$BUILD_DIR"
     sudo apt remove -y libpam0g-dev libxcb-xkb-dev
     sudo apt autoremove -y
     success "Ly installed successfully (Binary + Systemd Service)."
@@ -288,12 +328,12 @@ main() {
     step_1_update_system
     step_2_install_dependencies
     step_3_install_fonts
-    step_4_link_configs
-    step_5_install_starship    # Separated function
-    step_6_install_nvim        # Separated function
-    step_7_configure_rofi      # New function
-    step_8_install_ly_source   # Renumbered
-    step_9_enable_services     # Renumbered
+    step_4_copy_configs
+    step_5_install_starship
+    step_6_install_nvim
+    step_7_configure_rofi
+    step_8_install_ly_source
+    step_9_enable_services
     
     echo -e "\n${GREEN}======================================${NC}"
     echo -e "${GREEN}  INSTALLATION COMPLETE! REBOOT NOW.  ${NC}"
