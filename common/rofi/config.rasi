@@ -1,5 +1,5 @@
 configuration {
-	modi: "window,run,ssh,combi,drun, Google Search:/home/a1nz/.local/bin/rofi-web-search";
+	modi: "window,run,ssh,combi,drun, Google Search:~/.local/bin/rofi-web-search";
 	width: 50;
 	lines: 15;
 	columns: 1;
@@ -127,4 +127,34 @@ configuration {
 
 }
 
-@theme "onedark"
+//@theme "Monokai"
+
+//@theme "/usr/share/rofi/themes/gruvbox-dark-hard.rasi"
+
+//@theme "/usr/share/rofi/themes/material.rasi"
+
+//@theme "/usr/share/rofi/themes/sidebar.rasi"
+
+//@theme "/usr/share/rofi/themes/gruvbox-dark.rasi"
+
+//@theme "/usr/share/rofi/themes/nord.rasi"
+
+//@theme "/usr/share/rofi/themes/windows11-grid-dark.rasi"
+
+//@theme "/usr/share/rofi/themes/nord-twolines.rasi"
+
+//@theme "/usr/share/rofi/themes/windows11-grid-dark.rasi"
+
+//@theme "/usr/share/rofi/themes/rounded-blue-dark.rasi"
+
+//@theme "/usr/share/rofi/themes/spotlight-dark.rasi"
+
+//@theme "/usr/share/rofi/themes/square-nord.rasi"
+
+//@theme "/usr/share/rofi/themes/material.rasi"
+
+//@theme "/usr/share/rofi/themes/windows11-grid-dark.rasi"
+
+//@theme "/usr/share/rofi/themes/rounded-blue-dark.rasi"
+
+@theme "/usr/share/rofi/themes/square-nord.rasi"
