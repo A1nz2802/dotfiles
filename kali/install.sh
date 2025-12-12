@@ -29,16 +29,16 @@ CONFIG_DIR="$HOME/.config"
 
 # --- 4. Main Installation Steps ---
 step_1_update_system() {
-    print_step "Step 1/7: Updating System Packages"
+    print_step "Step 1/9: Updating System Packages"
     info "Running apt update..."
     sudo DEBIAN_FRONTEND=noninteractive apt update -y
     success "System updated."
 }
 
 step_2_install_dependencies() {
-    print_step "Step 2/7: Installing Runtime Dependencies"
+    print_step "Step 2/9: Installing Runtime Dependencies"
     
-    # Node.js 22.x Repo (Checks if already added, required for neovim plugins)
+    # Node.js 22.x Repo
     if ! command -v node &> /dev/null; then
         info "Adding NodeSource repo..."
         curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
@@ -49,7 +49,6 @@ step_2_install_dependencies() {
         "git" "kitty" "neovim" "spice-vdagent" "zsh" "curl" "wget" "jq"
         "rofi" "trayer" "xmonad" "xmobar" "build-essential" "nodejs"
         "brightnessctl" 
-        # Note: We removed the -dev packages from here to install/remove them later
     )
 
     info "Installing: ${DEPENDENCIES[*]}"
@@ -58,7 +57,7 @@ step_2_install_dependencies() {
 }
 
 step_3_install_fonts() {
-    print_step "Step 3/7: Installing Fonts"
+    print_step "Step 3/9: Installing Fonts"
     FONT_SCRIPT="$KALI_DIR/install_fonts.sh"
     if [ -f "$FONT_SCRIPT" ]; then
         chmod +x "$FONT_SCRIPT"
@@ -70,7 +69,7 @@ step_3_install_fonts() {
 }
 
 step_4_link_configs() {
-    print_step "Step 4/7: Linking Configurations"
+    print_step "Step 4/9: Linking Configurations"
     mkdir -p "$CONFIG_DIR"
 
     # 1. Common Directories
@@ -105,7 +104,6 @@ step_4_link_configs() {
         SOURCE="$KALI_DIR/$file"
         TARGET="$HOME/$file"
         if [ -f "$SOURCE" ]; then
-            # Backup if exists and is not a symlink
             [ -f "$TARGET" ] && [ ! -L "$TARGET" ] && mv "$TARGET" "${TARGET}.bak"
             ln -sf "$SOURCE" "$TARGET"
             success "Linked $file"
@@ -118,28 +116,85 @@ step_4_link_configs() {
     [ -f "$COMMON_DIR/starship.toml" ] && ln -sf "$COMMON_DIR/starship.toml" "$CONFIG_DIR/starship.toml"
 }
 
-step_5_starship_nvim() {
-    print_step "Step 5/7: Starship & Neovim"
+step_5_install_starship() {
+    print_step "Step 5/9: Installing Starship"
     
-    # Starship
     if ! command -v starship &> /dev/null; then
+        info "Downloading and installing Starship..."
         curl -sS https://starship.rs/install.sh | sudo sh -s -- --yes
+        success "Starship installed."
+    else
+        info "Starship is already installed."
     fi
+}
 
-    # Neovim Config
+step_6_install_nvim() {
+    print_step "Step 6/9: Configuring Neovim"
+    
     NVIM_DIR="$HOME/.config/nvim"
     NVIM_REPO="https://github.com/A1nz2802/nvim.git"
 
     if [ -d "$NVIM_DIR" ]; then
+        info "Backing up existing Neovim config..."
         rm -rf "${NVIM_DIR}.bak"
         mv "$NVIM_DIR" "${NVIM_DIR}.bak"
     fi
+    
+    info "Cloning Neovim configuration..."
     git clone "$NVIM_REPO" "$NVIM_DIR"
-    success "Neovim & Starship setup complete."
+    success "Neovim setup complete."
 }
 
-step_6_install_ly_source() {
-    print_step "Step 6/7: Compiling & Installing Ly (Zig 0.15.2)"
+step_7_configure_rofi() {
+    print_step "Step 7/9: Configuring Rofi (Scripts & Themes)"
+
+    # --- A. Setup rofi-web-search script ---
+    LOCAL_BIN="$HOME/.local/bin"
+    SOURCE_SCRIPT="$COMMON_DIR/.local/bin/rofi-web-search"
+    TARGET_SCRIPT="$LOCAL_BIN/rofi-web-search"
+
+    mkdir -p "$LOCAL_BIN"
+
+    if [ -f "$SOURCE_SCRIPT" ]; then
+        info "Copying rofi-web-search script..."
+        cp "$SOURCE_SCRIPT" "$TARGET_SCRIPT"
+        chmod +x "$TARGET_SCRIPT"
+        
+        # Add local bin to PATH temporarily for this session if not present
+        if [[ ":$PATH:" != *":$LOCAL_BIN:"* ]]; then
+            export PATH="$LOCAL_BIN:$PATH"
+        fi
+        success "rofi-web-search installed and executable."
+    else
+        echo -e "${YELLOW}[WARN]${NC} Script 'rofi-web-search' not found in common/.local/bin."
+    fi
+
+    # --- B. Install Rofi Themes ---
+    THEMES_REPO_URL="https://github.com/newmanls/rofi-themes-collection.git"
+    TEMP_DIR="/tmp/rofi-themes"
+    TARGET_THEMES_DIR="/usr/share/rofi/themes"
+
+    info "Cloning Rofi themes collection..."
+    if [ -d "$TEMP_DIR" ]; then rm -rf "$TEMP_DIR"; fi
+    git clone --depth 1 "$THEMES_REPO_URL" "$TEMP_DIR"
+
+    info "Installing themes to $TARGET_THEMES_DIR..."
+    # We copy ONLY the contents of the 'themes' folder as requested
+    if [ -d "$TEMP_DIR/themes" ]; then
+        # sudo is needed for /usr/share
+        sudo mkdir -p "$TARGET_THEMES_DIR"
+        sudo cp -r "$TEMP_DIR/themes/"* "$TARGET_THEMES_DIR/"
+        success "Rofi themes installed."
+    else
+        echo -e "${RED}[ERROR]${NC} Themes folder not found in cloned repo."; exit 1
+    fi
+
+    # Cleanup
+    rm -rf "$TEMP_DIR"
+}
+
+step_8_install_ly_source() {
+    print_step "Step 8/9: Compiling & Installing Ly (Zig 0.15.2)"
     
     # --- A. Install Build Dependencies ---
     info "Installing temporary build dependencies..."
@@ -147,15 +202,12 @@ step_6_install_ly_source() {
 
     # --- B. Install Zig 0.15.2 (Stable) ---
     ZIG_VER="0.15.2"
-    # Note: Confirmed working URL
     ZIG_URL="https://ziglang.org/download/${ZIG_VER}/zig-x86_64-linux-${ZIG_VER}.tar.xz"
-    # Note: Folder name inside tarball uses 'x86_64-linux' order
     ZIG_EXTRACTED_NAME="zig-x86_64-linux-${ZIG_VER}"
     
     INSTALL_DIR="$HOME/.local/bin"
     ZIG_PATH="$HOME/.local/zig-${ZIG_VER}"
 
-    # Check if exact version is already installed
     if ! command -v zig &> /dev/null || [[ "$(zig version)" != "${ZIG_VER}"* ]]; then
         info "Downloading Zig ${ZIG_VER}..."
         mkdir -p "$HOME/.local" "$INSTALL_DIR"
@@ -164,7 +216,6 @@ step_6_install_ly_source() {
              echo -e "${RED}[ERROR]${NC} Failed to download Zig. Check URL."; exit 1
         fi
         
-        # Cleanup and extraction
         rm -rf "$ZIG_PATH" 
         rm -rf "$HOME/.local/$ZIG_EXTRACTED_NAME"
         rm -f "$INSTALL_DIR/zig"
@@ -195,9 +246,6 @@ step_6_install_ly_source() {
 
     info "Compiling and Installing Ly..."
     
-    # Using 'installexe' with '-Dinit_system=systemd' 
-    # This compiles AND installs the binary + systemd service automatically.
-    # Sudo is required for writing to /usr and /etc.
     sudo "$INSTALL_DIR/zig" build installexe -Dinit_system=systemd -Doptimize=ReleaseSafe || \
     {
         echo -e "${RED}[ERROR]${NC} Compilation/Installation failed."; exit 1
@@ -208,38 +256,23 @@ step_6_install_ly_source() {
     # --- D. CLEANUP ---
     print_step "Cleanup: Removing build tools"
     rm -rf "$BUILD_DIR"
-    # Optional: Remove Zig to save space
-    # rm -rf "$ZIG_PATH"
-    # rm -f "$INSTALL_DIR/zig"
-    
     sudo apt remove -y libpam0g-dev libxcb-xkb-dev
     sudo apt autoremove -y
-    
     success "Ly installed successfully (Binary + Systemd Service)."
 }
 
-step_7_enable_services() {
-    print_step "Step 7/7: Enabling Services"
+step_9_enable_services() {
+    print_step "Step 9/9: Enabling Services"
     
-    # 1. Disable other Display Managers
     info "Disabling current display managers..."
     sudo systemctl disable lightdm gdm3 sddm 2>/dev/null || true
     
-    # 2. Enable Ly (Detecting if new 'ly@' or old 'ly' service exists)
     if [ -f "/usr/lib/systemd/system/ly@.service" ]; then
         info "Found new Ly template service (ly@.service)."
-        
-        # Enabling Ly specifically on TTY2
-        # This is standard for TUI managers to avoid conflicts with boot logs on tty1
         sudo systemctl enable ly@tty2.service
-        
-        # Ensure it is the default display manager
         sudo ln -sf /usr/lib/systemd/system/ly@.service /etc/systemd/system/display-manager.service
-        
         success "Ly service enabled on TTY2."
-        
     elif [ -f "/etc/systemd/system/ly.service" ] || [ -f "/usr/lib/systemd/system/ly.service" ]; then
-        # Fallback for legacy versions
         info "Found legacy Ly service."
         sudo systemctl enable ly
         success "Ly service enabled."
@@ -251,14 +284,16 @@ step_7_enable_services() {
 
 # --- 5. Execution ---
 main() {
-    sudo -v # Ask for password upfront
+    sudo -v
     step_1_update_system
     step_2_install_dependencies
     step_3_install_fonts
     step_4_link_configs
-    step_5_starship_nvim
-    step_6_install_ly_source
-    step_7_enable_services
+    step_5_install_starship    # Separated function
+    step_6_install_nvim        # Separated function
+    step_7_configure_rofi      # New function
+    step_8_install_ly_source   # Renumbered
+    step_9_enable_services     # Renumbered
     
     echo -e "\n${GREEN}======================================${NC}"
     echo -e "${GREEN}  INSTALLATION COMPLETE! REBOOT NOW.  ${NC}"
